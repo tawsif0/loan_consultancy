@@ -13,7 +13,9 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.6.0",
-    "server": "file:"
+    "pdfkit": "^0.17.1",
+    "server": "file:",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -7,8 +7,12 @@ const db = require("./config/db");
 app.use(cors());
 app.use(express.json());
 
+// Mount the applications route, including the new /download endpoint
 app.use("/api/applications", require("./routes/applicationRoutes"));
+
+// Authentication routes
 app.use("/api/auth", require("./routes/authRoutes"));
+
 // Test DB connection
 db.getConnection()
   .then(() => console.log("Database connected"))
