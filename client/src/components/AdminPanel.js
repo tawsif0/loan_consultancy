@@ -43,12 +43,24 @@ const AdminPanel = () => {
     };
     fetchApplications();
   }, [navigate]);
-
   useEffect(() => {
     if (selectedDate) {
       const filtered = applications.filter((app) => {
-        const appDate = new Date(app.createdAt).toISOString().split("T")[0];
-        return appDate === selectedDate;
+        const appDate = new Date(app.createdAt);
+        const appUTCDate = new Date(
+          Date.UTC(appDate.getFullYear(), appDate.getMonth(), appDate.getDate())
+        );
+
+        const filterDate = new Date(selectedDate);
+        const filterUTCDate = new Date(
+          Date.UTC(
+            filterDate.getFullYear(),
+            filterDate.getMonth(),
+            filterDate.getDate()
+          )
+        );
+
+        return appUTCDate.getTime() === filterUTCDate.getTime();
       });
       setDateFilteredCount(filtered.length);
     } else {
@@ -346,10 +358,26 @@ const AdminPanel = () => {
       app.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.contactNo?.includes(searchTerm);
     const matchesFilter = filterType === "all" || app.loan_type === filterType;
-    const matchesDate =
-      !selectedDate ||
-      new Date(app.createdAt).toISOString().split("T")[0] === selectedDate;
-    return matchesSearch && matchesFilter && matchesDate;
+
+    if (selectedDate) {
+      const appDate = new Date(app.createdAt);
+      const appUTCDate = new Date(
+        Date.UTC(appDate.getFullYear(), appDate.getMonth(), appDate.getDate())
+      );
+
+      const filterDate = new Date(selectedDate);
+      const filterUTCDate = new Date(
+        Date.UTC(
+          filterDate.getFullYear(),
+          filterDate.getMonth(),
+          filterDate.getDate()
+        )
+      );
+
+      const matchesDate = appUTCDate.getTime() === filterUTCDate.getTime();
+      return matchesSearch && matchesFilter && matchesDate;
+    }
+    return matchesSearch && matchesFilter;
   });
 
   if (loading) {
@@ -470,7 +498,10 @@ const AdminPanel = () => {
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            onChange={(e) => {
+              // The date picker already gives us the correct date in YYYY-MM-DD format
+              setSelectedDate(e.target.value);
+            }}
             className="adminPanel-dateInput"
             aria-label="Select date for application filter"
           />
@@ -489,7 +520,7 @@ const AdminPanel = () => {
                 {dateFilteredCount}
               </span>
               <span className="adminPanel-dateStatLabel">
-                applications on {selectedDate}
+                applications on {formatDate(selectedDate)}
               </span>
             </div>
           )}
