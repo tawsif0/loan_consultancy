@@ -1,5 +1,6 @@
 // src/components/LoanLandingPage.js
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Hero from "./Hero";
 import About from "./About";
@@ -10,6 +11,7 @@ import "./LoanLandingPage.css";
 
 const LoanLandingPage = () => {
   const [activeTab, setActiveTab] = useState("hero");
+  const location = useLocation();
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -19,7 +21,14 @@ const LoanLandingPage = () => {
     }
   };
 
-  // Automatically detect which section is in view
+  // ✅ Scroll to top if navigated from Go Home button
+  useEffect(() => {
+    if (location.state?.fromButton) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location]);
+
+  // ✅ Automatically detect which section is in view
   useEffect(() => {
     const handleScroll = () => {
       const sections = ["hero", "about", "services", "faq"];

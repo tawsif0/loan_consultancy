@@ -1233,7 +1233,7 @@ const ApplicationForm = () => {
         <div className="go-home-wrapper">
           <Button
             className="application-submit-buttons"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/", { state: { fromButton: true } })}
           >
             Go Home
           </Button>
