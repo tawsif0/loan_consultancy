@@ -26,7 +26,7 @@ const AdminPanel = () => {
         const response = await axios.get(
           "http://localhost:5000/api/applications",
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` }
           }
         );
         setApplications(response.data);
@@ -73,7 +73,7 @@ const AdminPanel = () => {
       "Private Job Holder": "success",
       Doctor: "danger",
       "Garments Job Holder": "warning",
-      Teacher: "info",
+      Teacher: "info"
     };
     return <Badge bg={types[type] || "secondary"}>{type}</Badge>;
   };
@@ -92,26 +92,26 @@ const AdminPanel = () => {
 
   const renderChambers = (chambersArray) => {
     if (!chambersArray?.length)
-      return <p className="no-data">No Chamber Info</p>;
+      return <p className="adminPanel-noData">No Chamber Info</p>;
 
     return chambersArray.map((chamber, idx) => (
-      <div key={idx} className="chamber-card">
+      <div key={idx} className="adminPanel-chamberCard">
         <h6>Chamber {idx + 1}</h6>
-        <div className="detail-row">
-          <span className="detail-label">Place Name:</span>
-          <span className="detail-value">
+        <div className="adminPanel-detailRow">
+          <span className="adminPanel-detailLabel">Place Name:</span>
+          <span className="adminPanel-detailValue">
             {highlightSearchTerm(chamber.chamberPlaceName || "-", searchTerm)}
           </span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Address:</span>
-          <span className="detail-value">
+        <div className="adminPanel-detailRow">
+          <span className="adminPanel-detailLabel">Address:</span>
+          <span className="adminPanel-detailValue">
             {highlightSearchTerm(chamber.chamberAddress || "-", searchTerm)}
           </span>
         </div>
-        <div className="detail-row">
-          <span className="detail-label">Monthly Income:</span>
-          <span className="detail-value">
+        <div className="adminPanel-detailRow">
+          <span className="adminPanel-detailLabel">Monthly Income:</span>
+          <span className="adminPanel-detailValue">
             {chamber.monthlyIncome != null
               ? `৳${parseFloat(chamber.monthlyIncome).toLocaleString()}`
               : "-"}
@@ -130,9 +130,9 @@ const AdminPanel = () => {
     )
       return null;
     return (
-      <div className="detail-row">
-        <span className="detail-label">{label}</span>
-        <span className="detail-value">
+      <div className="adminPanel-detailRow">
+        <span className="adminPanel-detailLabel">{label}</span>
+        <span className="adminPanel-detailValue">
           {isCurrency
             ? `৳${parseFloat(value).toLocaleString()}`
             : highlightSearchTerm(value, searchTerm)}
@@ -145,20 +145,22 @@ const AdminPanel = () => {
     const doctorTypeKeyMap = {
       "Job Holder": "jobHolder",
       "Only Chamber": "onlyChamber",
-      "Job Holder & Chamber": "jobHolderAndChamber",
+      "Job Holder & Chamber": "jobHolderAndChamber"
     };
 
     const doctorChambers =
       app.chambers?.[doctorTypeKeyMap[app.doctor_type]] || null;
 
     return (
-      <Accordion className="details-accordion" defaultActiveKey="0">
+      <Accordion className="adminPanel-detailsAccordion" defaultActiveKey="0">
         <Accordion.Item eventKey="0">
           <Accordion.Header>Application Details</Accordion.Header>
           <Accordion.Body>
-            <div className="details-grid">
-              <div className="detail-group">
-                <h5 className="detail-group-title">Personal Information</h5>
+            <div className="adminPanel-detailsGrid">
+              <div className="adminPanel-detailGroup">
+                <h5 className="adminPanel-detailGroupTitle">
+                  Personal Information
+                </h5>
                 <DetailRow
                   label="Present Address:"
                   value={app.presentAddress}
@@ -188,8 +190,10 @@ const AdminPanel = () => {
                 />
               </div>
 
-              <div className="detail-group">
-                <h5 className="detail-group-title">Financial Information</h5>
+              <div className="adminPanel-detailGroup">
+                <h5 className="adminPanel-detailGroupTitle">
+                  Financial Information
+                </h5>
                 <DetailRow
                   label="Salary Type:"
                   value={app.salary_type}
@@ -231,8 +235,10 @@ const AdminPanel = () => {
               </div>
 
               {app.loan_type === "Doctor" && (
-                <div className="detail-group">
-                  <h5 className="detail-group-title">Doctor Information</h5>
+                <div className="adminPanel-detailGroup">
+                  <h5 className="adminPanel-detailGroupTitle">
+                    Doctor Information
+                  </h5>
                   <DetailRow
                     label="BMDC Age:"
                     value={app.bmdcAge}
@@ -269,14 +275,14 @@ const AdminPanel = () => {
                   {(app.doctor_type === "Job Holder" ||
                     app.doctor_type === "Only Chamber" ||
                     app.doctor_type === "Job Holder & Chamber") && (
-                    <div className="chamber-section">
-                      <h6 className="chamber-section-title">
+                    <div className="adminPanel-chamberSection">
+                      <h6 className="adminPanel-chamberSectionTitle">
                         Chamber Information
                       </h6>
                       {doctorChambers && doctorChambers.length > 0 ? (
                         renderChambers(doctorChambers)
                       ) : (
-                        <p className="no-data">No Chamber Info</p>
+                        <p className="adminPanel-noData">No Chamber Info</p>
                       )}
                     </div>
                   )}
@@ -284,8 +290,10 @@ const AdminPanel = () => {
               )}
 
               {app.loan_type !== "Doctor" && (
-                <div className="detail-group">
-                  <h5 className="detail-group-title">Employment Information</h5>
+                <div className="adminPanel-detailGroup">
+                  <h5 className="adminPanel-detailGroupTitle">
+                    Employment Information
+                  </h5>
                   <DetailRow
                     label="Department:"
                     value={app.department}
@@ -346,18 +354,17 @@ const AdminPanel = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
+      <div className="adminPanel-loadingContainer">
+        <div className="adminPanel-spinner"></div>
         <p>Loading applications...</p>
       </div>
     );
   }
 
   if (error) {
-    return <div className="error-message">{error}</div>;
+    return <div className="adminPanel-errorMessage">{error}</div>;
   }
 
-  // Download PDF from backend endpoint
   const downloadPDF = async () => {
     if (!selectedDate) {
       alert("Please select a date first");
@@ -368,10 +375,29 @@ const AdminPanel = () => {
       const response = await fetch(
         `http://localhost:5000/api/applications/download?date=${selectedDate}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
-      if (!response.ok) throw new Error("Failed to download PDF");
+
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+          const text = await response.text();
+          throw new Error(
+            `Server returned HTML error page (status ${response.status})`
+          );
+        }
+
+        try {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.error || `Server error (${response.status})`
+          );
+        } catch (e) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -382,37 +408,40 @@ const AdminPanel = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      alert("Error downloading PDF");
-      console.error(err);
+      alert("Error downloading PDF: " + err.message);
+      console.error("Download error:", err);
     }
   };
-
   return (
-    <div className="admin-panel-container">
-      <div className="admin-header">
-        <div className="header-content">
+    <div className="adminPanel-container">
+      <div className="adminPanel-header">
+        <div className="adminPanel-headerContent">
           <h1>Loan Applications Dashboard</h1>
           <p>Manage and review all loan applications</p>
         </div>
-        <Button variant="danger" onClick={handleLogout} className="logout-btn">
+        <Button
+          variant="danger"
+          onClick={handleLogout}
+          className="adminPanel-logoutBtn"
+        >
           <i className="bi bi-box-arrow-right"></i> Logout
         </Button>
       </div>
 
-      <div className="control-panel">
-        <div className="search-filter">
-          <div className="search-box">
+      <div className="adminPanel-controlPanel">
+        <div className="adminPanel-searchFilter">
+          <div className="adminPanel-searchBox">
             <i className="bi bi-search"></i>
             <input
               type="text"
               placeholder="Search by name or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="adminPanel-searchInput"
             />
             {searchTerm && (
               <button
-                className="clear-search"
+                className="adminPanel-clearSearch"
                 onClick={() => setSearchTerm("")}
                 aria-label="Clear search"
               >
@@ -420,12 +449,12 @@ const AdminPanel = () => {
               </button>
             )}
           </div>
-          <div className="filter-dropdown">
+          <div className="adminPanel-filterDropdown">
             <i className="bi bi-funnel"></i>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="filter-select"
+              className="adminPanel-filterSelect"
             >
               <option value="all">All Types</option>
               <option value="Govt. Employee">Government Employee</option>
@@ -437,47 +466,51 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        <div className="date-filter-section">
+        <div className="adminPanel-dateFilterSection">
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="date-input"
+            className="adminPanel-dateInput"
             aria-label="Select date for application filter"
           />
           <Button
             variant="success"
             onClick={downloadPDF}
             disabled={!selectedDate}
-            className="download-btn"
+            className="adminPanel-downloadBtn"
           >
             <i className="bi bi-download"></i> Download PDF
           </Button>
 
           {selectedDate && (
-            <div className="date-stat">
-              <span className="date-stat-value">{dateFilteredCount}</span>
-              <span className="date-stat-label">
+            <div className="adminPanel-dateStat">
+              <span className="adminPanel-dateStatValue">
+                {dateFilteredCount}
+              </span>
+              <span className="adminPanel-dateStatLabel">
                 applications on {selectedDate}
               </span>
             </div>
           )}
         </div>
 
-        <div className="stats-summary">
-          <div className="stat-card">
-            <span className="stat-value">{applications.length}</span>
-            <span className="stat-label">Total Applications</span>
+        <div className="adminPanel-statsSummary">
+          <div className="adminPanel-statCard">
+            <span className="adminPanel-statValue">{applications.length}</span>
+            <span className="adminPanel-statLabel">Total Applications</span>
           </div>
-          <div className="stat-card">
-            <span className="stat-value">{filteredApplications.length}</span>
-            <span className="stat-label">Filtered Results</span>
+          <div className="adminPanel-statCard">
+            <span className="adminPanel-statValue">
+              {filteredApplications.length}
+            </span>
+            <span className="adminPanel-statLabel">Filtered Results</span>
           </div>
         </div>
       </div>
 
-      <div className="applications-table-container">
-        <Table hover className="applications-table">
+      <div className="adminPanel-applicationsTableContainer">
+        <Table hover className="adminPanel-applicationsTable">
           <thead>
             <tr>
               <th>Name</th>
@@ -492,15 +525,19 @@ const AdminPanel = () => {
             {filteredApplications.length > 0 ? (
               filteredApplications.map((app) => (
                 <React.Fragment key={app.id}>
-                  <tr className={openDetailsId === app.id ? "active-row" : ""}>
-                    <td className="applicant-name">
+                  <tr
+                    className={
+                      openDetailsId === app.id ? "adminPanel-activeRow" : ""
+                    }
+                  >
+                    <td className="adminPanel-applicantName">
                       {highlightSearchTerm(app.fullName || "-", searchTerm)}
                     </td>
                     <td>
                       {highlightSearchTerm(app.contactNo || "-", searchTerm)}
                     </td>
                     <td>{getLoanTypeBadge(app.loan_type)}</td>
-                    <td className="amount-cell">
+                    <td className="adminPanel-amountCell">
                       ৳
                       {app.requiredAmount != null
                         ? parseFloat(app.requiredAmount).toLocaleString()
@@ -520,7 +557,7 @@ const AdminPanel = () => {
                             openDetailsId === app.id ? null : app.id
                           )
                         }
-                        className="details-btn"
+                        className="adminPanel-detailsBtn"
                       >
                         {openDetailsId === app.id ? (
                           <>
@@ -535,7 +572,7 @@ const AdminPanel = () => {
                     </td>
                   </tr>
                   {openDetailsId === app.id && (
-                    <tr className="details-row">
+                    <tr className="adminPanel-detailsRow">
                       <td colSpan="6">{renderDetails(app)}</td>
                     </tr>
                   )}
@@ -543,8 +580,8 @@ const AdminPanel = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="no-results">
-                  <div className="no-results-content">
+                <td colSpan="6" className="adminPanel-noResults">
+                  <div className="adminPanel-noResultsContent">
                     <i className="bi bi-search"></i>
                     <h4>No applications found</h4>
                     <p>Try adjusting your search or filter criteria</p>

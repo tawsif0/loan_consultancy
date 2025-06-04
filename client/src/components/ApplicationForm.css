@@ -1,0 +1,291 @@
+:root {
+  --application-primary: #4361ee;
+  --application-secondary: #3f37c9;
+  --application-accent: #4895ef;
+  --application-light: #f8f9fa;
+  --application-dark: #212529;
+  --application-success: #4cc9f0;
+  --application-warning: #f72585;
+  --application-border-radius: 10px;
+  --application-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --application-transition: all 0.3s ease;
+}
+
+.application-form-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.application-form-card {
+  background-color: white;
+  border-radius: var(--application-border-radius);
+  box-shadow: var(--application-shadow);
+  width: 100%;
+  max-width: 900px;
+  overflow: hidden;
+  margin: 20px auto;
+}
+
+.application-form-header {
+  background: linear-gradient(
+    to right,
+    var(--application-primary),
+    var(--application-secondary)
+  );
+  color: white;
+  padding: 25px 30px;
+  text-align: center;
+}
+
+.application-form-title {
+  font-weight: 700;
+  margin-bottom: 5px;
+  font-size: 28px;
+}
+
+.application-form-subtitle {
+  opacity: 0.9;
+  margin-bottom: 0;
+  font-size: 16px;
+}
+
+.application-form {
+  padding: 30px;
+}
+
+.application-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.application-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.application-section-title {
+  color: var(--application-primary);
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--application-accent);
+  font-size: 20px;
+}
+
+.application-form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.application-form-control {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  padding: 10px 15px;
+  transition: var(--application-transition);
+  font-size: 15px;
+}
+
+.application-form-control:focus {
+  border-color: var(--application-accent);
+  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+.application-chamber-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #f9fafb;
+  position: relative;
+}
+
+.application-chamber-title {
+  color: var(--application-secondary);
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.application-remove-chamber {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 13px;
+}
+
+.application-add-chamber {
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-weight: 600;
+  border: 2px dashed var(--application-accent);
+  background-color: rgba(72, 149, 239, 0.1);
+  color: var(--application-primary);
+  width: 100%;
+  margin-top: 10px;
+}
+
+.application-add-chamber:hover {
+  background-color: rgba(72, 149, 239, 0.2);
+}
+
+.application-submit-section {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.application-submit-button {
+  background: linear-gradient(
+    to right,
+    var(--application-primary),
+    var(--application-secondary)
+  );
+  border: none;
+  border-radius: 30px;
+  padding: 12px 40px;
+  font-weight: 600;
+  font-size: 18px;
+  transition: var(--application-transition);
+  box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+.application-submit-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+}
+
+.go-home-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 40px;
+  padding: 0 15px;
+  max-width: 100%;
+}
+
+/* Button Styling */
+.application-submit-buttons {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  text-align: center;
+}
+
+/* Hover Effect */
+.application-submit-buttons:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
+}
+
+/* Focus Effect */
+.application-submit-buttons:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+}
+
+/* Tablet & iPad */
+@media (max-width: 1024px) {
+  .application-submit-buttons {
+    font-size: 1rem;
+    padding: 12px 28px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .go-home-wrapper {
+    margin: 30px auto;
+  }
+
+  .application-submit-buttons {
+    font-size: 0.95rem;
+    padding: 10px 25px;
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+  .application-submit-buttons {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .application-form {
+    padding: 20px;
+  }
+
+  .application-form-header {
+    padding: 20px 15px;
+  }
+
+  .application-form-title {
+    font-size: 24px;
+  }
+
+  .application-section-title {
+    font-size: 18px;
+  }
+
+  .application-form-control {
+    padding: 8px 12px;
+  }
+
+  .application-submit-button {
+    padding: 10px 30px;
+    font-size: 16px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .application-form-container {
+    padding: 10px;
+  }
+
+  .application-form-card {
+    margin: 10px auto;
+  }
+  .application-form-label {
+    font-size: 12px;
+  }
+  .application-form {
+    padding: 15px;
+  }
+
+  .application-form-header {
+    padding: 15px 10px;
+  }
+  .loan-requirement-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .loan-requirement-row .form-group {
+    width: 100%;
+  }
+
+  .loan-requirement-row .application-form-control {
+    width: 100%;
+  }
+}

@@ -1,6 +1,7 @@
-const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
+const pool = require("../config/db");
 const pdfkit = require("pdfkit");
+
 exports.submitApplication = async (req, res) => {
   try {
     const application = { ...req.body };
@@ -30,7 +31,7 @@ exports.submitApplication = async (req, res) => {
                 applicationId,
                 chamber.chamberPlaceName || null,
                 chamber.chamberAddress || null,
-                chamber.monthlyIncome || null,
+                chamber.monthlyIncome || null
               ]
             );
           }
@@ -64,7 +65,7 @@ exports.getAllApplications = async (req, res) => {
         const groupedChambers = {
           jobHolder: [],
           onlyChamber: [],
-          jobHolderAndChamber: [],
+          jobHolderAndChamber: []
         };
 
         if (app.doctor_type === "Job Holder") {
@@ -77,7 +78,7 @@ exports.getAllApplications = async (req, res) => {
 
         return {
           ...app,
-          chambers: groupedChambers,
+          chambers: groupedChambers
         };
       })
     );
@@ -101,13 +102,14 @@ exports.getApplicationById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 exports.downloadApplicationsPDF = async (req, res) => {
   const date = req.query.date;
   if (!date) {
     return res.status(400).json({ error: "Date query parameter is required" });
   }
+
   try {
-    // Query applications created on this date (assuming createdAt is datetime)
     const [applications] = await pool.query(
       `SELECT * FROM loan_applications WHERE DATE(createdAt) = ? ORDER BY createdAt DESC`,
       [date]
@@ -119,7 +121,6 @@ exports.downloadApplicationsPDF = async (req, res) => {
         .json({ error: "No applications found for this date" });
     }
 
-    // For each application, fetch chambers
     const applicationsWithChambers = await Promise.all(
       applications.map(async (app) => {
         const [chambers] = await pool.query(
@@ -133,10 +134,8 @@ exports.downloadApplicationsPDF = async (req, res) => {
       })
     );
 
-    // Generate PDF using pdfkit
     const doc = new pdfkit({ margin: 30, size: "A4" });
 
-    // Setup response headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -144,71 +143,80 @@ exports.downloadApplicationsPDF = async (req, res) => {
     );
 
     doc.pipe(res);
-
     doc.fontSize(18).text(`Loan Applications - ${date}`, { align: "center" });
     doc.moveDown();
 
     applicationsWithChambers.forEach((app, index) => {
       doc.fontSize(14).text(`${index + 1}. ${app.fullName} (${app.loan_type})`);
-      doc.fontSize(12).text(`Contact: ${app.contactNo}`);
+      doc.fontSize(12).text(`Contact: ${app.contactNo || "-"}`);
       doc.text(
-        `Amount: ৳${parseFloat(app.requiredAmount || 0).toLocaleString()}`
+        `Required Amount: Tk ${parseFloat(
+          app.requiredAmount || 0
+        ).toLocaleString()}`
       );
       doc.text(`Date: ${app.createdAt.toISOString().split("T")[0]}`);
 
-      doc.text(`Present Address: ${app.presentAddress || "-"}`);
-      doc.text(`Loan Requirement Time: ${app.loanRequirementTime || "-"}`);
-      doc.text(`Existing Loan: ${app.existingLoan || "-"}`);
-      if (app.existingLoan === "Yes") {
-        doc.text(`Payment Regularity: ${app.paymentRegularity || "-"}`);
-      }
-      doc.text(`Comments: ${app.comments || "-"}`);
+      doc.moveDown().font("Helvetica-Bold").text("Personal Information:");
+      doc.font("Helvetica");
+      if (app.presentAddress)
+        doc.text(`Present Address: ${app.presentAddress}`);
+      if (app.loanRequirementTime)
+        doc.text(`Loan Requirement Time: ${app.loanRequirementTime}`);
+      if (app.existingLoan) doc.text(`Existing Loan: ${app.existingLoan}`);
+      if (app.existingLoan === "Yes" && app.paymentRegularity)
+        doc.text(`Payment Regularity: ${app.paymentRegularity}`);
+      if (app.comments) doc.text(`Comments: ${app.comments}`);
 
-      doc.text(`Salary Type: ${app.salary_type || "-"}`);
-      if (app.salary_type === "Bank Amount") {
+      doc.moveDown().font("Helvetica-Bold").text("Financial Information:");
+      doc.font("Helvetica");
+      if (app.salary_type) doc.text(`Salary Type: ${app.salary_type}`);
+      if (app.salary_type === "Bank Amount")
         doc.text(
-          `Bank Amount: ৳${parseFloat(app.bankAmount || 0).toLocaleString()}`
+          `Bank Amount: Tk ${parseFloat(app.bankAmount || 0).toLocaleString()}`
         );
-      } else if (app.salary_type === "Cash Amount") {
+      else if (app.salary_type === "Cash Amount")
         doc.text(
-          `Cash Amount: ৳${parseFloat(app.cashAmount || 0).toLocaleString()}`
+          `Cash Amount: Tk ${parseFloat(app.cashAmount || 0).toLocaleString()}`
         );
-      } else if (app.salary_type === "Bank & Cash Amount") {
+      else if (app.salary_type === "Bank & Cash Amount") {
         doc.text(
-          `Bank Amount: ৳${parseFloat(app.bankAmount || 0).toLocaleString()}`
-        );
-        doc.text(
-          `Cash Amount: ৳${parseFloat(app.cashAmount || 0).toLocaleString()}`
+          `Bank Amount: Tk ${parseFloat(app.bankAmount || 0).toLocaleString()}`
         );
         doc.text(
-          `Bank & Cash Amount: ৳${parseFloat(
+          `Cash Amount: Tk ${parseFloat(app.cashAmount || 0).toLocaleString()}`
+        );
+        doc.text(
+          `Bank & Cash Amount: Tk ${parseFloat(
             app.bankAndCashAmount || 0
           ).toLocaleString()}`
         );
       }
 
       if (app.loan_type === "Doctor") {
-        doc.text(`BMDC Age: ${app.bmdcAge || "-"}`);
-        doc.text(`Doctor Type: ${app.doctor_type || "-"}`);
+        doc.moveDown().font("Helvetica-Bold").text("Doctor Information:");
+        doc.font("Helvetica");
+        if (app.bmdcAge) doc.text(`BMDC Age: ${app.bmdcAge}`);
+        if (app.doctor_type) doc.text(`Doctor Type: ${app.doctor_type}`);
         if (app.doctor_type !== "Only Chamber") {
-          doc.text(`Hospital Name: ${app.hospitalName || "-"}`);
-          doc.text(`Hospital Address: ${app.hospitalAddress || "-"}`);
-          if (app.monthlySalaryFromHospital > 0) {
+          if (app.hospitalName) doc.text(`Hospital Name: ${app.hospitalName}`);
+          if (app.hospitalAddress)
+            doc.text(`Hospital Address: ${app.hospitalAddress}`);
+          if (app.monthlySalaryFromHospital > 0)
             doc.text(
-              `Monthly Salary From Hospital: ৳${parseFloat(
+              `Monthly Salary From Hospital: Tk ${parseFloat(
                 app.monthlySalaryFromHospital
               ).toLocaleString()}`
             );
-          }
         }
+
         if (app.chambers && app.chambers.length) {
-          doc.text("Chambers:");
+          doc.moveDown().text("Chambers:");
           app.chambers.forEach((chamber, i) => {
             doc.text(`  Chamber ${i + 1}:`);
             doc.text(`    Place Name: ${chamber.chamberPlaceName || "-"}`);
             doc.text(`    Address: ${chamber.chamberAddress || "-"}`);
             doc.text(
-              `    Monthly Income: ৳${parseFloat(
+              `    Monthly Income: Tk ${parseFloat(
                 chamber.monthlyIncome || 0
               ).toLocaleString()}`
             );
@@ -218,14 +226,37 @@ exports.downloadApplicationsPDF = async (req, res) => {
         }
       }
 
+      if (app.loan_type !== "Doctor") {
+        doc.moveDown().font("Helvetica-Bold").text("Employment Information:");
+        doc.font("Helvetica");
+        if (app.department) doc.text(`Department: ${app.department}`);
+        if (app.designation) doc.text(`Designation: ${app.designation}`);
+        if (app.organizationAddress)
+          doc.text(`Organization Address: ${app.organizationAddress}`);
+        if (app.jobGrade) doc.text(`Job Grade: ${app.jobGrade}`);
+        if (app.salary)
+          doc.text(
+            `Salary: Tk ${parseFloat(app.salary || 0).toLocaleString()}`
+          );
+
+        if (app.loan_type === "Teacher" && app.instituteAddress)
+          doc.text(`Institute Address: ${app.instituteAddress}`);
+
+        if (
+          (app.loan_type === "Private Job Holder" ||
+            app.loan_type === "Garments Job Holder") &&
+          app.companyAddress
+        )
+          doc.text(`Company Address: ${app.companyAddress}`);
+      }
+
       if (index < applicationsWithChambers.length - 1) {
-        doc.moveDown();
         doc.moveDown();
         doc
           .moveTo(doc.x, doc.y)
           .lineTo(doc.page.width - doc.page.margins.right, doc.y)
           .stroke();
-        doc.moveDown();
+        doc.moveDown().moveDown();
       }
     });
 

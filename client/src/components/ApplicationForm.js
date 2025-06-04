@@ -1,57 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./ApplicationForm.css";
+import { useNavigate } from "react-router-dom";
+
+// Initial form data structure
+const initialFormData = {
+  fullName: "",
+  contactNo: "",
+  requiredAmount: "",
+  presentAddress: "",
+  existingLoan: "No",
+  paymentRegularity: "",
+  comments: "",
+  department: "",
+  designation: "",
+  organizationName: "",
+  organizationAddress: "",
+  jobGrade: "",
+  instituteName: "",
+  instituteAddress: "",
+  companyName: "",
+  companyAddress: "",
+  hospitalName: "",
+  hospitalAddress: "",
+  bmdcAge: "",
+  monthlySalaryFromHospital: "",
+  bankAmount: "",
+  cashAmount: "",
+  bankAndCashAmount: ""
+};
 
 const ApplicationForm = () => {
-  const navigate = useNavigate();
-
   const [loanType, setLoanType] = useState("Govt. Employee");
   const [salaryType, setSalaryType] = useState("");
   const [doctorType, setDoctorType] = useState("Job Holder");
-
   const [loanRequirementNumber, setLoanRequirementNumber] = useState("");
   const [loanRequirementUnit, setLoanRequirementUnit] = useState("");
-
   const [chambersJobHolder, setChambersJobHolder] = useState([]);
   const [chambersOnlyChamber, setChambersOnlyChamber] = useState([]);
   const [chambersJobHolderAndChamber, setChambersJobHolderAndChamber] =
     useState([]);
-
-  const [formData, setFormData] = useState({
-    fullName: "",
-    contactNo: "",
-    requiredAmount: "",
-    presentAddress: "",
-    existingLoan: "No",
-    paymentRegularity: "", // empty string initially
-    comments: "",
-    department: "",
-    designation: "",
-    organizationName: "",
-    organizationAddress: "",
-    jobGrade: "",
-    instituteName: "",
-    instituteAddress: "",
-    companyName: "",
-    companyAddress: "",
-    hospitalName: "",
-    hospitalAddress: "",
-    bmdcAge: "",
-    monthlySalaryFromHospital: "",
-    bankAmount: "",
-    cashAmount: "",
-    bankAndCashAmount: "",
-  });
-
-  // Chambers initialization by doctorType
+  const [formData, setFormData] = useState(initialFormData);
+  const navigate = useNavigate();
   useEffect(() => {
     if (loanType === "Doctor") {
       if (doctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
         setChambersOnlyChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
         ]);
       }
       if (
@@ -59,7 +59,7 @@ const ApplicationForm = () => {
         chambersJobHolderAndChamber.length === 0
       ) {
         setChambersJobHolderAndChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
         ]);
       }
       if (doctorType === "Job Holder" && chambersJobHolder.length === 0) {
@@ -89,12 +89,12 @@ const ApplicationForm = () => {
         return {
           ...prev,
           existingLoan: value,
-          paymentRegularity: "", // clear paymentRegularity if no existing loan
+          paymentRegularity: ""
         };
       }
       return {
         ...prev,
-        [name]: value,
+        [name]: value
       };
     });
   };
@@ -106,17 +106,7 @@ const ApplicationForm = () => {
     setChambersJobHolder([]);
     setChambersOnlyChamber([]);
     setChambersJobHolderAndChamber([]);
-    setFormData((prev) => ({
-      ...prev,
-      existingLoan: "No",
-      paymentRegularity: "Regular",
-      designation: "",
-      department: "",
-      monthlySalaryFromHospital: "",
-      bankAmount: "",
-      cashAmount: "",
-      bankAndCashAmount: "",
-    }));
+    setFormData(initialFormData);
     setLoanRequirementNumber("");
     setLoanRequirementUnit("");
   };
@@ -124,31 +114,19 @@ const ApplicationForm = () => {
   const handleDoctorTypeChange = (e) => {
     setDoctorType(e.target.value);
     setSalaryType("");
-    setFormData((prev) => ({
-      ...prev,
-      monthlySalaryFromHospital: "",
-      bankAmount: "",
-      cashAmount: "",
-      bankAndCashAmount: "",
-    }));
+    setFormData(initialFormData);
   };
 
   const handleSalaryTypeChange = (e) => {
     setSalaryType(e.target.value);
-    setFormData((prev) => ({
-      ...prev,
-      monthlySalaryFromHospital: "",
-      bankAmount: "",
-      cashAmount: "",
-      bankAndCashAmount: "",
-    }));
+    setFormData(initialFormData);
   };
 
   const handleAddChamber = () => {
     const [currentChambers, setChambersForType] = getCurrentChambers();
     setChambersForType([
       ...currentChambers,
-      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
     ]);
   };
 
@@ -175,43 +153,50 @@ const ApplicationForm = () => {
   const renderChambers = () => {
     const [currentChambers] = getCurrentChambers();
     return currentChambers.map((chamber, idx) => (
-      <div key={idx} className="border rounded p-3 mb-3 position-relative">
-        <h6>Chamber {idx + 1}</h6>
+      <div key={idx} className="application-chamber-card position-relative">
+        <h6 className="application-chamber-title">Chamber {idx + 1}</h6>
         {(doctorType === "Job Holder" || idx > 0) && (
           <Button
             variant="danger"
             size="sm"
-            className="position-absolute"
-            style={{ top: "5px", right: "5px" }}
+            className="application-remove-chamber"
             onClick={() => handleRemoveChamber(idx)}
           >
             Remove
           </Button>
         )}
-        <Row className="mb-3">
+        <Col>
           <Form.Group as={Col} controlId={`chamberPlaceName-${idx}`}>
-            <Form.Label>Chamber Place Name</Form.Label>
+            <Form.Label className="application-form-label">
+              Chamber Place Name
+            </Form.Label>
             <Form.Control
               type="text"
               name="chamberPlaceName"
               value={chamber.chamberPlaceName}
               onChange={(e) => handleChamberChange(idx, e)}
               required
+              className="application-form-control"
             />
           </Form.Group>
           <Form.Group as={Col} controlId={`monthlyIncome-${idx}`}>
-            <Form.Label>Monthly Income by Chamber</Form.Label>
+            <Form.Label className="application-form-label">
+              Monthly Income by Chamber
+            </Form.Label>
             <Form.Control
               type="number"
               name="monthlyIncome"
               value={chamber.monthlyIncome}
               onChange={(e) => handleChamberChange(idx, e)}
               required
+              className="application-form-control"
             />
           </Form.Group>
-        </Row>
+        </Col>
         <Form.Group controlId={`chamberAddress-${idx}`}>
-          <Form.Label>Chamber Address</Form.Label>
+          <Form.Label className="application-form-label">
+            Chamber Address
+          </Form.Label>
           <Form.Control
             as="textarea"
             rows={2}
@@ -219,10 +204,23 @@ const ApplicationForm = () => {
             value={chamber.chamberAddress}
             onChange={(e) => handleChamberChange(idx, e)}
             required
+            className="application-form-control"
           />
         </Form.Group>
       </div>
     ));
+  };
+
+  const resetForm = () => {
+    setLoanType("Govt. Employee");
+    setSalaryType("");
+    setDoctorType("Job Holder");
+    setLoanRequirementNumber("");
+    setLoanRequirementUnit("");
+    setChambersJobHolder([]);
+    setChambersOnlyChamber([]);
+    setChambersJobHolderAndChamber([]);
+    setFormData(initialFormData);
   };
 
   const handleSubmit = async (e) => {
@@ -231,22 +229,20 @@ const ApplicationForm = () => {
     const chambersForSubmit = {
       jobHolder: chambersJobHolder,
       onlyChamber: chambersOnlyChamber,
-      jobHolderAndChamber: chambersJobHolderAndChamber,
+      jobHolderAndChamber: chambersJobHolderAndChamber
     };
 
     const loanRequirementTimeCombined = `${loanRequirementNumber} ${loanRequirementUnit}`;
 
     const baseData = {
       ...formData,
-      loanRequirementTime: loanRequirementTimeCombined,
+      loanRequirementTime: loanRequirementTimeCombined
     };
 
-    // Only include chambers if Doctor
     if (loanType !== "Doctor") {
       delete baseData.chambers;
     }
 
-    // Ensure salary_type is included and null for non-doctor types
     const salaryTypeToSend = loanType === "Doctor" ? salaryType : salaryType;
 
     const dataToSend =
@@ -256,31 +252,33 @@ const ApplicationForm = () => {
             doctor_type: doctorType,
             salary_type: salaryTypeToSend,
             chambers: chambersForSubmit,
-            ...baseData,
+            ...baseData
           }
         : {
             loan_type: loanType,
             salary_type: salaryTypeToSend,
-            ...baseData,
+            ...baseData
           };
 
     try {
       const response = await fetch("http://localhost:5000/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(dataToSend)
       });
 
       if (response.ok) {
-        alert("Application submitted successfully!");
-        navigate("/");
+        toast.success("Application submitted successfully!");
+        resetForm();
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.error || "Failed to submit application"}`);
+        toast.error(
+          `Error: ${errorData.error || "Failed to submit application"}`
+        );
       }
     } catch (error) {
       console.error("Submission error:", error);
-      alert("Failed to submit application. Please try again.");
+      toast.error("Failed to submit application. Please try again.");
     }
   };
 
@@ -294,434 +292,126 @@ const ApplicationForm = () => {
     !isDoctor || isJobHolderOnly || loanType !== "Doctor";
 
   return (
-    <Form onSubmit={handleSubmit} className="p-4">
-      <h2>Loan Application Form</h2>
+    <div className="application-form-container">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="application-form-card">
+        <div className="application-form-header">
+          <h2 className="application-form-title">Loan Application</h2>
+          <p className="application-form-subtitle">
+            Fill in your details to apply for a loan
+          </p>
+        </div>
 
-      <Form.Group className="mb-3" controlId="loanType">
-        <Form.Label>Loan Type</Form.Label>
-        <Form.Select value={loanType} onChange={handleLoanTypeChange}>
-          <option>Govt. Employee</option>
-          <option>Private Job Holder</option>
-          <option>Garments Job Holder</option>
-          <option>Doctor</option>
-          <option>Teacher</option>
-        </Form.Select>
-      </Form.Group>
-
-      <Row className="mb-3">
-        <Form.Group as={Col} controlId="fullName">
-          <Form.Label>Full Name</Form.Label>
-          <Form.Control
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-
-        <Form.Group as={Col} controlId="contactNo">
-          <Form.Label>Contact No</Form.Label>
-          <Form.Control
-            type="text"
-            name="contactNo"
-            value={formData.contactNo}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-      </Row>
-
-      {/* Govt Employee */}
-      {loanType === "Govt. Employee" && (
-        <>
-          <Form.Group className="mb-3" controlId="organizationName">
-            <Form.Label>Organization Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="organizationName"
-              value={formData.organizationName}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Row className="mb-3">
-            <Form.Group as={Col} controlId="department">
-              <Form.Label>Department</Form.Label>
-              <Form.Control
-                type="text"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group as={Col} controlId="designation">
-              <Form.Label>Designation</Form.Label>
-              <Form.Control
-                type="text"
-                name="designation"
-                value={formData.designation}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-          </Row>
-
-          {showSalaryAfterDesignation && (
-            <>
-              <Form.Group className="mb-3" controlId="salaryDropdown">
-                <Form.Label>Salary</Form.Label>
-                <Form.Select
-                  value={salaryType}
-                  onChange={handleSalaryTypeChange}
-                  required
-                >
-                  <option value="">-- Select --</option>
-                  <option value="Bank Amount">Bank Amount</option>
-                  <option value="Cash Amount">Cash Amount</option>
-                  <option value="Bank & Cash Amount">Bank & Cash Amount</option>
-                </Form.Select>
-              </Form.Group>
-
-              {salaryType === "Bank Amount" && (
-                <Form.Group className="mb-3" controlId="bankAmount">
-                  <Form.Label>Bank Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="bankAmount"
-                    value={formData.bankAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-
-              {salaryType === "Cash Amount" && (
-                <Form.Group className="mb-3" controlId="cashAmount">
-                  <Form.Label>Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="cashAmount"
-                    value={formData.cashAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-
-              {salaryType === "Bank & Cash Amount" && (
-                <Form.Group className="mb-3" controlId="bankAndCashAmount">
-                  <Form.Label>Bank & Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="bankAndCashAmount"
-                    value={formData.bankAndCashAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-            </>
-          )}
-
-          <Form.Group className="mb-3" controlId="organizationAddress">
-            <Form.Label>Organization Address</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="organizationAddress"
-              value={formData.organizationAddress}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Row className="mb-3">
-            <Form.Group as={Col} controlId="jobGrade">
-              <Form.Label>Job Grade</Form.Label>
-              <Form.Control
-                type="text"
-                name="jobGrade"
-                value={formData.jobGrade}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Row>
-        </>
-      )}
-
-      {/* Private Job Holder and Garments Job Holder */}
-      {(loanType === "Private Job Holder" ||
-        loanType === "Garments Job Holder") && (
-        <>
-          <Form.Group className="mb-3" controlId="companyName">
-            <Form.Label>Company Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="companyName"
-              value={formData.companyName}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="companyAddress">
-            <Form.Label>Company Address</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="companyAddress"
-              value={formData.companyAddress}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Row className="mb-3">
-            <Form.Group as={Col} controlId="department">
-              <Form.Label>Department</Form.Label>
-              <Form.Control
-                type="text"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group as={Col} controlId="designation">
-              <Form.Label>Designation</Form.Label>
-              <Form.Control
-                type="text"
-                name="designation"
-                value={formData.designation}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-          </Row>
-
-          {showSalaryAfterDesignation && (
-            <>
-              <Form.Group className="mb-3" controlId="salaryDropdown">
-                <Form.Label>Salary</Form.Label>
-                <Form.Select
-                  value={salaryType}
-                  onChange={handleSalaryTypeChange}
-                  required
-                >
-                  <option value="">-- Select --</option>
-                  <option value="Bank Amount">Bank Amount</option>
-                  <option value="Cash Amount">Cash Amount</option>
-                  <option value="Bank & Cash Amount">Bank & Cash Amount</option>
-                </Form.Select>
-              </Form.Group>
-
-              {salaryType === "Bank Amount" && (
-                <Form.Group className="mb-3" controlId="bankAmount">
-                  <Form.Label>Bank Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="bankAmount"
-                    value={formData.bankAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-
-              {salaryType === "Cash Amount" && (
-                <Form.Group className="mb-3" controlId="cashAmount">
-                  <Form.Label>Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="cashAmount"
-                    value={formData.cashAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-
-              {salaryType === "Bank & Cash Amount" && (
-                <Form.Group className="mb-3" controlId="bankAndCashAmount">
-                  <Form.Label>Bank & Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="bankAndCashAmount"
-                    value={formData.bankAndCashAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      {/* Teacher */}
-      {loanType === "Teacher" && (
-        <>
-          <Form.Group className="mb-3" controlId="instituteName">
-            <Form.Label>Institute Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="instituteName"
-              value={formData.instituteName}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="instituteAddress">
-            <Form.Label>Institute Address</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="instituteAddress"
-              value={formData.instituteAddress}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Row className="mb-3">
-            <Form.Group as={Col} controlId="designation">
-              <Form.Label>Designation</Form.Label>
-              <Form.Control
-                type="text"
-                name="designation"
-                value={formData.designation}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-          </Row>
-
-          {showSalaryAfterDesignation && (
-            <>
-              <Form.Group className="mb-3" controlId="salaryDropdown">
-                <Form.Label>Salary</Form.Label>
-                <Form.Select
-                  value={salaryType}
-                  onChange={handleSalaryTypeChange}
-                  required
-                >
-                  <option value="">-- Select --</option>
-                  <option value="Bank Amount">Bank Amount</option>
-                  <option value="Cash Amount">Cash Amount</option>
-                  <option value="Bank & Cash Amount">Bank & Cash Amount</option>
-                </Form.Select>
-              </Form.Group>
-
-              {salaryType === "Bank Amount" && (
-                <Form.Group className="mb-3" controlId="bankAmount">
-                  <Form.Label>Bank Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="bankAmount"
-                    value={formData.bankAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-
-              {salaryType === "Cash Amount" && (
-                <Form.Group className="mb-3" controlId="cashAmount">
-                  <Form.Label>Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="cashAmount"
-                    value={formData.cashAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-
-              {salaryType === "Bank & Cash Amount" && (
-                <Form.Group className="mb-3" controlId="bankAndCashAmount">
-                  <Form.Label>Bank & Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="bankAndCashAmount"
-                    value={formData.bankAndCashAmount}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      {/* Doctor */}
-      {loanType === "Doctor" && (
-        <>
-          <Form.Group className="mb-3" controlId="doctorType">
-            <Form.Label>Doctor Type</Form.Label>
-            <Form.Select
-              name="doctorType"
-              value={doctorType}
-              onChange={handleDoctorTypeChange}
-            >
-              <option value="Job Holder">Only Job Holder</option>
-              <option value="Only Chamber">Only Chamber</option>
-              <option value="Job Holder & Chamber">Job Holder & Chamber</option>
-            </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="bmdcAge">
-            <Form.Label>BMDC Age</Form.Label>
-            <Form.Control
-              type="text"
-              name="bmdcAge"
-              value={formData.bmdcAge}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          {/* Doctor - Only Job Holder */}
-          {doctorType === "Job Holder" && (
-            <>
-              <Form.Group className="mb-3" controlId="department">
-                <Form.Label>Department</Form.Label>
+        <Form onSubmit={handleSubmit} className="application-form">
+          <div className="application-section">
+            <h4 className="application-section-title">Personal Information</h4>
+            <Row className="mb-3">
+              <Form.Group as={Col} controlId="fullName">
+                <Form.Label className="application-form-label">
+                  Full Name
+                </Form.Label>
                 <Form.Control
                   type="text"
-                  name="department"
-                  value={formData.department}
+                  name="fullName"
+                  value={formData.fullName}
                   onChange={handleChange}
                   required
+                  className="application-form-control"
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3" controlId="designation">
-                <Form.Label>Designation</Form.Label>
+              <Form.Group as={Col} controlId="contactNo">
+                <Form.Label className="application-form-label">
+                  Contact No
+                </Form.Label>
                 <Form.Control
                   type="text"
-                  name="designation"
-                  value={formData.designation}
+                  name="contactNo"
+                  value={formData.contactNo}
                   onChange={handleChange}
                   required
+                  className="application-form-control"
+                />
+              </Form.Group>
+            </Row>
+
+            <Form.Group className="mb-4" controlId="loanType">
+              <Form.Label className="application-form-label">
+                Loan Type
+              </Form.Label>
+              <Form.Select
+                value={loanType}
+                onChange={handleLoanTypeChange}
+                className="application-form-control"
+              >
+                <option>Govt. Employee</option>
+                <option>Private Job Holder</option>
+                <option>Garments Job Holder</option>
+                <option>Doctor</option>
+                <option>Teacher</option>
+              </Form.Select>
+            </Form.Group>
+          </div>
+
+          {/* Govt Employee */}
+          {loanType === "Govt. Employee" && (
+            <div className="application-section">
+              <h4 className="application-section-title">Employment Details</h4>
+              <Form.Group className="mb-3" controlId="organizationName">
+                <Form.Label className="application-form-label">
+                  Organization Name
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="organizationName"
+                  value={formData.organizationName}
+                  onChange={handleChange}
+                  required
+                  className="application-form-control"
                 />
               </Form.Group>
 
-              {/* Salary dropdown & input */}
+              <Row className="mb-3">
+                <Form.Group as={Col} controlId="department">
+                  <Form.Label className="application-form-label">
+                    Department
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleChange}
+                    required
+                    className="application-form-control"
+                  />
+                </Form.Group>
+
+                <Form.Group as={Col} controlId="designation">
+                  <Form.Label className="application-form-label">
+                    Designation
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="designation"
+                    value={formData.designation}
+                    onChange={handleChange}
+                    required
+                    className="application-form-control"
+                  />
+                </Form.Group>
+              </Row>
+
               {showSalaryAfterDesignation && (
                 <>
                   <Form.Group className="mb-3" controlId="salaryDropdown">
-                    <Form.Label>Salary</Form.Label>
+                    <Form.Label className="application-form-label">
+                      Salary
+                    </Form.Label>
                     <Form.Select
                       value={salaryType}
                       onChange={handleSalaryTypeChange}
                       required
+                      className="application-form-control"
                     >
                       <option value="">-- Select --</option>
                       <option value="Bank Amount">Bank Amount</option>
@@ -734,274 +424,788 @@ const ApplicationForm = () => {
 
                   {salaryType === "Bank Amount" && (
                     <Form.Group className="mb-3" controlId="bankAmount">
-                      <Form.Label>Bank Amount</Form.Label>
+                      <Form.Label className="application-form-label">
+                        Bank Amount
+                      </Form.Label>
                       <Form.Control
                         type="number"
                         name="bankAmount"
                         value={formData.bankAmount}
                         onChange={handleChange}
                         required
+                        className="application-form-control"
                       />
                     </Form.Group>
                   )}
 
                   {salaryType === "Cash Amount" && (
                     <Form.Group className="mb-3" controlId="cashAmount">
-                      <Form.Label>Cash Amount</Form.Label>
+                      <Form.Label className="application-form-label">
+                        Cash Amount
+                      </Form.Label>
                       <Form.Control
                         type="number"
                         name="cashAmount"
                         value={formData.cashAmount}
                         onChange={handleChange}
                         required
+                        className="application-form-control"
                       />
                     </Form.Group>
                   )}
 
                   {salaryType === "Bank & Cash Amount" && (
                     <Form.Group className="mb-3" controlId="bankAndCashAmount">
-                      <Form.Label>Bank & Cash Amount</Form.Label>
+                      <Form.Label className="application-form-label">
+                        Bank & Cash Amount
+                      </Form.Label>
                       <Form.Control
                         type="number"
                         name="bankAndCashAmount"
                         value={formData.bankAndCashAmount}
                         onChange={handleChange}
                         required
+                        className="application-form-control"
                       />
                     </Form.Group>
                   )}
                 </>
               )}
 
-              <Form.Group className="mb-3" controlId="hospitalName">
-                <Form.Label>Hospital Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="hospitalName"
-                  value={formData.hospitalName}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3" controlId="hospitalAddress">
-                <Form.Label>Hospital Address</Form.Label>
+              <Form.Group className="mb-3" controlId="organizationAddress">
+                <Form.Label className="application-form-label">
+                  Organization Address
+                </Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
-                  name="hospitalAddress"
-                  value={formData.hospitalAddress}
+                  name="organizationAddress"
+                  value={formData.organizationAddress}
                   onChange={handleChange}
                   required
+                  className="application-form-control"
                 />
               </Form.Group>
 
-              <Button
-                variant="outline-primary"
-                onClick={handleAddChamber}
-                className="mb-3"
-              >
-                + Add Chamber
-              </Button>
-
-              {renderChambers()}
-            </>
+              <Row className="mb-3">
+                <Form.Group as={Col} controlId="jobGrade">
+                  <Form.Label className="application-form-label">
+                    Job Grade
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="jobGrade"
+                    value={formData.jobGrade}
+                    onChange={handleChange}
+                    className="application-form-control"
+                  />
+                </Form.Group>
+              </Row>
+            </div>
           )}
 
-          {/* Doctor - Only Chamber and Job Holder & Chamber */}
-          {(doctorType === "Only Chamber" ||
-            doctorType === "Job Holder & Chamber") && (
-            <>
-              {renderChambers()}
-              <Button
-                variant="outline-primary"
-                onClick={handleAddChamber}
-                className="mb-3"
-              >
-                + Add Chamber
-              </Button>
-            </>
-          )}
-
-          {/* Doctor - Job Holder & Chamber salary section as per diagram */}
-          {doctorType === "Job Holder & Chamber" && (
-            <>
-              <Form.Group className="mb-3" controlId="hospitalName">
-                <Form.Label>Hospital Name</Form.Label>
+          {/* Private Job Holder and Garments Job Holder */}
+          {(loanType === "Private Job Holder" ||
+            loanType === "Garments Job Holder") && (
+            <div className="application-section">
+              <h4 className="application-section-title">Employment Details</h4>
+              <Form.Group className="mb-3" controlId="companyName">
+                <Form.Label className="application-form-label">
+                  Company Name
+                </Form.Label>
                 <Form.Control
                   type="text"
-                  name="hospitalName"
-                  value={formData.hospitalName}
+                  name="companyName"
+                  value={formData.companyName}
                   onChange={handleChange}
                   required
+                  className="application-form-control"
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3" controlId="hospitalAddress">
-                <Form.Label>Hospital Address</Form.Label>
+              <Form.Group className="mb-3" controlId="companyAddress">
+                <Form.Label className="application-form-label">
+                  Company Address
+                </Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
-                  name="hospitalAddress"
-                  value={formData.hospitalAddress}
+                  name="companyAddress"
+                  value={formData.companyAddress}
                   onChange={handleChange}
                   required
+                  className="application-form-control"
                 />
               </Form.Group>
 
-              {/* Monthly Salary From Hospital dropdown */}
-              <Form.Group className="mb-3" controlId="salaryDropdown">
-                <Form.Label>Monthly Salary From Hospital</Form.Label>
+              <Row className="mb-3">
+                <Form.Group as={Col} controlId="department">
+                  <Form.Label className="application-form-label">
+                    Department
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleChange}
+                    required
+                    className="application-form-control"
+                  />
+                </Form.Group>
+
+                <Form.Group as={Col} controlId="designation">
+                  <Form.Label className="application-form-label">
+                    Designation
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="designation"
+                    value={formData.designation}
+                    onChange={handleChange}
+                    required
+                    className="application-form-control"
+                  />
+                </Form.Group>
+              </Row>
+
+              {showSalaryAfterDesignation && (
+                <>
+                  <Form.Group className="mb-3" controlId="salaryDropdown">
+                    <Form.Label className="application-form-label">
+                      Salary
+                    </Form.Label>
+                    <Form.Select
+                      value={salaryType}
+                      onChange={handleSalaryTypeChange}
+                      required
+                      className="application-form-control"
+                    >
+                      <option value="">-- Select --</option>
+                      <option value="Bank Amount">Bank Amount</option>
+                      <option value="Cash Amount">Cash Amount</option>
+                      <option value="Bank & Cash Amount">
+                        Bank & Cash Amount
+                      </option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  {salaryType === "Bank Amount" && (
+                    <Form.Group className="mb-3" controlId="bankAmount">
+                      <Form.Label className="application-form-label">
+                        Bank Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="bankAmount"
+                        value={formData.bankAmount}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+
+                  {salaryType === "Cash Amount" && (
+                    <Form.Group className="mb-3" controlId="cashAmount">
+                      <Form.Label className="application-form-label">
+                        Cash Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="cashAmount"
+                        value={formData.cashAmount}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+
+                  {salaryType === "Bank & Cash Amount" && (
+                    <Form.Group className="mb-3" controlId="bankAndCashAmount">
+                      <Form.Label className="application-form-label">
+                        Bank & Cash Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="bankAndCashAmount"
+                        value={formData.bankAndCashAmount}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Teacher */}
+          {loanType === "Teacher" && (
+            <div className="application-section">
+              <h4 className="application-section-title">Employment Details</h4>
+              <Form.Group className="mb-3" controlId="instituteName">
+                <Form.Label className="application-form-label">
+                  Institute Name
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="instituteName"
+                  value={formData.instituteName}
+                  onChange={handleChange}
+                  required
+                  className="application-form-control"
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="instituteAddress">
+                <Form.Label className="application-form-label">
+                  Institute Address
+                </Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  name="instituteAddress"
+                  value={formData.instituteAddress}
+                  onChange={handleChange}
+                  required
+                  className="application-form-control"
+                />
+              </Form.Group>
+
+              <Row className="mb-3">
+                <Form.Group as={Col} controlId="designation">
+                  <Form.Label className="application-form-label">
+                    Designation
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="designation"
+                    value={formData.designation}
+                    onChange={handleChange}
+                    required
+                    className="application-form-control"
+                  />
+                </Form.Group>
+              </Row>
+
+              {showSalaryAfterDesignation && (
+                <>
+                  <Form.Group className="mb-3" controlId="salaryDropdown">
+                    <Form.Label className="application-form-label">
+                      Salary
+                    </Form.Label>
+                    <Form.Select
+                      value={salaryType}
+                      onChange={handleSalaryTypeChange}
+                      required
+                      className="application-form-control"
+                    >
+                      <option value="">-- Select --</option>
+                      <option value="Bank Amount">Bank Amount</option>
+                      <option value="Cash Amount">Cash Amount</option>
+                      <option value="Bank & Cash Amount">
+                        Bank & Cash Amount
+                      </option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  {salaryType === "Bank Amount" && (
+                    <Form.Group className="mb-3" controlId="bankAmount">
+                      <Form.Label className="application-form-label">
+                        Bank Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="bankAmount"
+                        value={formData.bankAmount}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+
+                  {salaryType === "Cash Amount" && (
+                    <Form.Group className="mb-3" controlId="cashAmount">
+                      <Form.Label className="application-form-label">
+                        Cash Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="cashAmount"
+                        value={formData.cashAmount}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+
+                  {salaryType === "Bank & Cash Amount" && (
+                    <Form.Group className="mb-3" controlId="bankAndCashAmount">
+                      <Form.Label className="application-form-label">
+                        Bank & Cash Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="bankAndCashAmount"
+                        value={formData.bankAndCashAmount}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Doctor */}
+          {loanType === "Doctor" && (
+            <div className="application-section">
+              <h4 className="application-section-title">
+                Professional Details
+              </h4>
+              <Form.Group className="mb-3" controlId="doctorType">
+                <Form.Label className="application-form-label">
+                  Doctor Type
+                </Form.Label>
                 <Form.Select
-                  value={salaryType}
-                  onChange={handleSalaryTypeChange}
-                  required
+                  name="doctorType"
+                  value={doctorType}
+                  onChange={handleDoctorTypeChange}
+                  className="application-form-control"
                 >
-                  <option value="">-- Select --</option>
-                  <option value="Bank Amount">Bank Amount</option>
-                  <option value="Cash Amount">Cash Amount</option>
-                  <option value="Bank & Cash Amount">Bank & Cash Amount</option>
+                  <option value="Job Holder">Only Job Holder</option>
+                  <option value="Only Chamber">Only Chamber</option>
+                  <option value="Job Holder & Chamber">
+                    Job Holder & Chamber
+                  </option>
                 </Form.Select>
               </Form.Group>
 
-              {/* Input box below dropdown */}
-              {salaryType === "Bank Amount" && (
-                <Form.Group className="mb-3" controlId="monthlySalaryBank">
-                  <Form.Label>Bank Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="monthlySalaryFromHospital"
-                    value={formData.monthlySalaryFromHospital}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+              <Form.Group className="mb-3" controlId="bmdcAge">
+                <Form.Label className="application-form-label">
+                  BMDC Age
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="bmdcAge"
+                  value={formData.bmdcAge}
+                  onChange={handleChange}
+                  required
+                  className="application-form-control"
+                />
+              </Form.Group>
+
+              {/* Doctor - Only Job Holder */}
+              {doctorType === "Job Holder" && (
+                <>
+                  <Form.Group className="mb-3" controlId="department">
+                    <Form.Label className="application-form-label">
+                      Department
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="department"
+                      value={formData.department}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3" controlId="designation">
+                    <Form.Label className="application-form-label">
+                      Designation
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="designation"
+                      value={formData.designation}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+
+                  {/* Salary dropdown & input */}
+                  {showSalaryAfterDesignation && (
+                    <>
+                      <Form.Group className="mb-3" controlId="salaryDropdown">
+                        <Form.Label className="application-form-label">
+                          Salary
+                        </Form.Label>
+                        <Form.Select
+                          value={salaryType}
+                          onChange={handleSalaryTypeChange}
+                          required
+                          className="application-form-control"
+                        >
+                          <option value="">-- Select --</option>
+                          <option value="Bank Amount">Bank Amount</option>
+                          <option value="Cash Amount">Cash Amount</option>
+                          <option value="Bank & Cash Amount">
+                            Bank & Cash Amount
+                          </option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      {salaryType === "Bank Amount" && (
+                        <Form.Group className="mb-3" controlId="bankAmount">
+                          <Form.Label className="application-form-label">
+                            Bank Amount
+                          </Form.Label>
+                          <Form.Control
+                            type="number"
+                            name="bankAmount"
+                            value={formData.bankAmount}
+                            onChange={handleChange}
+                            required
+                            className="application-form-control"
+                          />
+                        </Form.Group>
+                      )}
+
+                      {salaryType === "Cash Amount" && (
+                        <Form.Group className="mb-3" controlId="cashAmount">
+                          <Form.Label className="application-form-label">
+                            Cash Amount
+                          </Form.Label>
+                          <Form.Control
+                            type="number"
+                            name="cashAmount"
+                            value={formData.cashAmount}
+                            onChange={handleChange}
+                            required
+                            className="application-form-control"
+                          />
+                        </Form.Group>
+                      )}
+
+                      {salaryType === "Bank & Cash Amount" && (
+                        <Form.Group
+                          className="mb-3"
+                          controlId="bankAndCashAmount"
+                        >
+                          <Form.Label className="application-form-label">
+                            Bank & Cash Amount
+                          </Form.Label>
+                          <Form.Control
+                            type="number"
+                            name="bankAndCashAmount"
+                            value={formData.bankAndCashAmount}
+                            onChange={handleChange}
+                            required
+                            className="application-form-control"
+                          />
+                        </Form.Group>
+                      )}
+                    </>
+                  )}
+
+                  <Form.Group className="mb-3" controlId="hospitalName">
+                    <Form.Label className="application-form-label">
+                      Hospital Name
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="hospitalName"
+                      value={formData.hospitalName}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3" controlId="hospitalAddress">
+                    <Form.Label className="application-form-label">
+                      Hospital Address
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="hospitalAddress"
+                      value={formData.hospitalAddress}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+
+                  <Button
+                    variant="outline-primary"
+                    onClick={handleAddChamber}
+                    className="application-add-chamber mb-3"
+                  >
+                    + Add Chamber
+                  </Button>
+
+                  {renderChambers()}
+                </>
               )}
 
-              {salaryType === "Cash Amount" && (
-                <Form.Group className="mb-3" controlId="monthlySalaryCash">
-                  <Form.Label>Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="monthlySalaryFromHospital"
-                    value={formData.monthlySalaryFromHospital}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+              {/* Doctor - Only Chamber and Job Holder & Chamber */}
+              {(doctorType === "Only Chamber" ||
+                doctorType === "Job Holder & Chamber") && (
+                <>
+                  {renderChambers()}
+                  <Button
+                    variant="outline-primary"
+                    onClick={handleAddChamber}
+                    className="application-add-chamber mb-3"
+                  >
+                    + Add Chamber
+                  </Button>
+                </>
               )}
 
-              {salaryType === "Bank & Cash Amount" && (
-                <Form.Group className="mb-3" controlId="monthlySalaryBankCash">
-                  <Form.Label>Bank & Cash Amount</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="monthlySalaryFromHospital"
-                    value={formData.monthlySalaryFromHospital}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+              {/* Doctor - Job Holder & Chamber salary section as per diagram */}
+              {doctorType === "Job Holder & Chamber" && (
+                <>
+                  <Form.Group className="mb-3" controlId="hospitalName">
+                    <Form.Label className="application-form-label">
+                      Hospital Name
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="hospitalName"
+                      value={formData.hospitalName}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3" controlId="hospitalAddress">
+                    <Form.Label className="application-form-label">
+                      Hospital Address
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="hospitalAddress"
+                      value={formData.hospitalAddress}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+
+                  {/* Monthly Salary From Hospital dropdown */}
+                  <Form.Group className="mb-3" controlId="salaryDropdown">
+                    <Form.Label className="application-form-label">
+                      Monthly Salary From Hospital
+                    </Form.Label>
+                    <Form.Select
+                      value={salaryType}
+                      onChange={handleSalaryTypeChange}
+                      required
+                      className="application-form-control"
+                    >
+                      <option value="">-- Select --</option>
+                      <option value="Bank Amount">Bank Amount</option>
+                      <option value="Cash Amount">Cash Amount</option>
+                      <option value="Bank & Cash Amount">
+                        Bank & Cash Amount
+                      </option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  {/* Input box below dropdown */}
+                  {salaryType === "Bank Amount" && (
+                    <Form.Group className="mb-3" controlId="monthlySalaryBank">
+                      <Form.Label className="application-form-label">
+                        Bank Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="monthlySalaryFromHospital"
+                        value={formData.monthlySalaryFromHospital}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+
+                  {salaryType === "Cash Amount" && (
+                    <Form.Group className="mb-3" controlId="monthlySalaryCash">
+                      <Form.Label className="application-form-label">
+                        Cash Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="monthlySalaryFromHospital"
+                        value={formData.monthlySalaryFromHospital}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+
+                  {salaryType === "Bank & Cash Amount" && (
+                    <Form.Group
+                      className="mb-3"
+                      controlId="monthlySalaryBankCash"
+                    >
+                      <Form.Label className="application-form-label">
+                        Bank & Cash Amount
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="monthlySalaryFromHospital"
+                        value={formData.monthlySalaryFromHospital}
+                        onChange={handleChange}
+                        required
+                        className="application-form-control"
+                      />
+                    </Form.Group>
+                  )}
+                </>
               )}
-            </>
+            </div>
           )}
-        </>
-      )}
 
-      <Row className="mb-3">
-        <Form.Group as={Col} controlId="requiredAmount">
-          <Form.Label>Required Amount</Form.Label>
-          <Form.Control
-            type="number"
-            name="requiredAmount"
-            value={formData.requiredAmount}
-            onChange={handleChange}
-            required
-          />
-        </Form.Group>
-      </Row>
+          <div className="application-section">
+            <h4 className="application-section-title">Loan Details</h4>
+            <Row className="mb-3">
+              <Form.Group as={Col} controlId="requiredAmount">
+                <Form.Label className="application-form-label">
+                  Required Amount
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  name="requiredAmount"
+                  value={formData.requiredAmount}
+                  onChange={handleChange}
+                  required
+                  className="application-form-control"
+                />
+              </Form.Group>
+            </Row>
 
-      <Row className="mb-3">
-        <Form.Group as={Col} controlId="loanRequirementNumber">
-          <Form.Label>Loan Requirement Time</Form.Label>
-          <Form.Control
-            type="number"
-            min={1}
-            value={loanRequirementNumber}
-            onChange={(e) => setLoanRequirementNumber(e.target.value)}
-            required
-          />
-        </Form.Group>
+            <Row className="mb-3 loan-requirement-row">
+              <Form.Group as={Col} controlId="loanRequirementNumber">
+                <Form.Label className="application-form-label">
+                  Loan Requirement Time
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  min={1}
+                  value={loanRequirementNumber}
+                  onChange={(e) => setLoanRequirementNumber(e.target.value)}
+                  required
+                  className="application-form-control"
+                  placeholder="Enter number"
+                />
+              </Form.Group>
 
-        <Form.Group as={Col} controlId="loanRequirementUnit">
-          <Form.Label>&nbsp;</Form.Label>
-          <Form.Select
-            value={loanRequirementUnit}
-            onChange={(e) => setLoanRequirementUnit(e.target.value)}
-            required
+              <Form.Group as={Col} controlId="loanRequirementUnit">
+                <Form.Label className="application-form-label d-none d-md-block">
+                  &nbsp;
+                </Form.Label>
+                <Form.Select
+                  value={loanRequirementUnit}
+                  onChange={(e) => setLoanRequirementUnit(e.target.value)}
+                  required
+                  className="application-form-control"
+                >
+                  <option value="">Select Unit</option>
+                  <option value="month">Month</option>
+                  <option value="year">Year</option>
+                </Form.Select>
+              </Form.Group>
+            </Row>
+
+            <Form.Group className="mb-3" controlId="presentAddress">
+              <Form.Label className="application-form-label">
+                Present Address
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="presentAddress"
+                value={formData.presentAddress}
+                onChange={handleChange}
+                required
+                className="application-form-control"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="existingLoan">
+              <Form.Label className="application-form-label">
+                Existing Loan or Credit Card
+              </Form.Label>
+              <Form.Select
+                name="existingLoan"
+                value={formData.existingLoan}
+                onChange={handleChange}
+                className="application-form-control"
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </Form.Select>
+            </Form.Group>
+
+            {formData.existingLoan === "Yes" && (
+              <Form.Group className="mb-3" controlId="paymentRegularity">
+                <Form.Label className="application-form-label">
+                  Payment Regularity
+                </Form.Label>
+                <Form.Select
+                  name="paymentRegularity"
+                  value={formData.paymentRegularity}
+                  onChange={handleChange}
+                  className="application-form-control"
+                >
+                  <option value="">Select</option>
+                  <option value="Regular">Regular</option>
+                  <option value="Irregular">Irregular</option>
+                  <option value="Sometime Irregular">Sometime Irregular</option>
+                </Form.Select>
+              </Form.Group>
+            )}
+
+            <Form.Group className="mb-3" controlId="comments">
+              <Form.Label className="application-form-label">
+                Comments
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="comments"
+                value={formData.comments}
+                onChange={handleChange}
+                className="application-form-control"
+              />
+            </Form.Group>
+          </div>
+
+          <div className="application-submit-section">
+            <Button
+              variant="primary"
+              type="submit"
+              className="application-submit-button"
+            >
+              Submit Application
+            </Button>
+          </div>
+        </Form>
+        <div className="go-home-wrapper">
+          <Button
+            className="application-submit-buttons"
+            onClick={() => navigate("/")}
           >
-            <option value="">Select Unit</option>
-            <option value="month">month</option>
-            <option value="year">year</option>
-          </Form.Select>
-        </Form.Group>
-      </Row>
-
-      <Form.Group className="mb-3" controlId="presentAddress">
-        <Form.Label>Present Address</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={3}
-          name="presentAddress"
-          value={formData.presentAddress}
-          onChange={handleChange}
-          required
-        />
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="existingLoan">
-        <Form.Label>Existing Loan or Credit Card</Form.Label>
-        <Form.Select
-          name="existingLoan"
-          value={formData.existingLoan}
-          onChange={handleChange}
-        >
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </Form.Select>
-      </Form.Group>
-
-      {formData.existingLoan === "Yes" && (
-        <Form.Group className="mb-3" controlId="paymentRegularity">
-          <Form.Label>Payment Regularity</Form.Label>
-          <Form.Select
-            name="paymentRegularity"
-            value={formData.paymentRegularity}
-            onChange={handleChange}
-          >
-            <option value="">Select</option>
-            <option value="Regular">Regular</option>
-            <option value="Irregular">Irregular</option>
-            <option value="Sometime Irregular">Sometime Irregular</option>
-          </Form.Select>
-        </Form.Group>
-      )}
-
-      <Form.Group className="mb-3" controlId="comments">
-        <Form.Label>Comments</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={3}
-          name="comments"
-          value={formData.comments}
-          onChange={handleChange}
-        />
-      </Form.Group>
-
-      <Button variant="primary" type="submit" className="mt-3">
-        Submit Application
-      </Button>
-    </Form>
+            Go Home
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
