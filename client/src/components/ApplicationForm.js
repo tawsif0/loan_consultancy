@@ -47,6 +47,7 @@ const ApplicationForm = () => {
     useState([]);
   const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
+
   useEffect(() => {
     if (loanType === "Doctor") {
       if (doctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
@@ -100,26 +101,49 @@ const ApplicationForm = () => {
   };
 
   const handleLoanTypeChange = (e) => {
-    setLoanType(e.target.value);
+    const newLoanType = e.target.value;
+    setLoanType(newLoanType);
     setSalaryType("");
     setDoctorType("Job Holder");
-    setChambersJobHolder([]);
-    setChambersOnlyChamber([]);
-    setChambersJobHolderAndChamber([]);
-    setFormData(initialFormData);
+
+    // Only reset chambers when switching to/from Doctor type
+    if (newLoanType === "Doctor" || loanType === "Doctor") {
+      setChambersJobHolder([]);
+      setChambersOnlyChamber([]);
+      setChambersJobHolderAndChamber([]);
+    }
+
+    // Don't reset formData here
     setLoanRequirementNumber("");
     setLoanRequirementUnit("");
   };
-
   const handleDoctorTypeChange = (e) => {
-    setDoctorType(e.target.value);
+    const newDoctorType = e.target.value;
+    setDoctorType(newDoctorType);
     setSalaryType("");
-    setFormData(initialFormData);
+
+    // Initialize chambers based on new doctor type
+    if (newDoctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
+      setChambersOnlyChamber([
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+      ]);
+    } else if (
+      newDoctorType === "Job Holder & Chamber" &&
+      chambersJobHolderAndChamber.length === 0
+    ) {
+      setChambersJobHolderAndChamber([
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+      ]);
+    } else if (newDoctorType === "Job Holder") {
+      setChambersJobHolder([]);
+    }
+
+    // Don't reset formData here
   };
 
   const handleSalaryTypeChange = (e) => {
     setSalaryType(e.target.value);
-    setFormData(initialFormData);
+    // Don't reset formData here
   };
 
   const handleAddChamber = () => {
@@ -226,41 +250,39 @@ const ApplicationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const chambersForSubmit = {
-      jobHolder: chambersJobHolder,
-      onlyChamber: chambersOnlyChamber,
-      jobHolderAndChamber: chambersJobHolderAndChamber
-    };
-
-    const loanRequirementTimeCombined = `${loanRequirementNumber} ${loanRequirementUnit}`;
-
-    const baseData = {
-      ...formData,
-      loanRequirementTime: loanRequirementTimeCombined
-    };
-
-    if (loanType !== "Doctor") {
-      delete baseData.chambers;
-    }
-
-    const salaryTypeToSend = loanType === "Doctor" ? salaryType : salaryType;
-
-    const dataToSend =
-      loanType === "Doctor"
-        ? {
-            loan_type: loanType,
-            doctor_type: doctorType,
-            salary_type: salaryTypeToSend,
-            chambers: chambersForSubmit,
-            ...baseData
-          }
-        : {
-            loan_type: loanType,
-            salary_type: salaryTypeToSend,
-            ...baseData
-          };
-
     try {
+      const chambersForSubmit = {
+        jobHolder: chambersJobHolder,
+        onlyChamber: chambersOnlyChamber,
+        jobHolderAndChamber: chambersJobHolderAndChamber
+      };
+
+      const loanRequirementTimeCombined = `${loanRequirementNumber} ${loanRequirementUnit}`;
+
+      const baseData = {
+        ...formData,
+        loanRequirementTime: loanRequirementTimeCombined
+      };
+
+      if (loanType !== "Doctor") {
+        delete baseData.chambers;
+      }
+
+      const dataToSend =
+        loanType === "Doctor"
+          ? {
+              loan_type: loanType,
+              doctor_type: doctorType,
+              salary_type: salaryType,
+              chambers: chambersForSubmit,
+              ...baseData
+            }
+          : {
+              loan_type: loanType,
+              salary_type: salaryType,
+              ...baseData
+            };
+
       const response = await fetch("http://localhost:5000/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -269,7 +291,19 @@ const ApplicationForm = () => {
 
       if (response.ok) {
         toast.success("Application submitted successfully!");
-        resetForm();
+
+        // ✅ Delay the reset slightly to allow UI update & message display
+        setTimeout(() => {
+          setLoanType("Govt. Employee");
+          setSalaryType("");
+          setDoctorType("Job Holder");
+          setLoanRequirementNumber("");
+          setLoanRequirementUnit("");
+          setChambersJobHolder([]);
+          setChambersOnlyChamber([]);
+          setChambersJobHolderAndChamber([]);
+          setFormData(initialFormData); // Clear only here
+        }, 500);
       } else {
         const errorData = await response.json();
         toast.error(
@@ -313,7 +347,7 @@ const ApplicationForm = () => {
                 <Form.Control
                   type="text"
                   name="fullName"
-                  value={formData.fullName}
+                  value={formData.fullName || ""}
                   onChange={handleChange}
                   required
                   className="application-form-control"
