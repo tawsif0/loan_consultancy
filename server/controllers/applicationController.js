@@ -31,7 +31,7 @@ exports.submitApplication = async (req, res) => {
                 applicationId,
                 chamber.chamberPlaceName || null,
                 chamber.chamberAddress || null,
-                chamber.monthlyIncome || null
+                chamber.monthlyIncome || null,
               ]
             );
           }
@@ -65,7 +65,7 @@ exports.getAllApplications = async (req, res) => {
         const groupedChambers = {
           jobHolder: [],
           onlyChamber: [],
-          jobHolderAndChamber: []
+          jobHolderAndChamber: [],
         };
 
         if (app.doctor_type === "Job Holder") {
@@ -78,7 +78,7 @@ exports.getAllApplications = async (req, res) => {
 
         return {
           ...app,
-          chambers: groupedChambers
+          chambers: groupedChambers,
         };
       })
     );
@@ -110,8 +110,11 @@ exports.downloadApplicationsPDF = async (req, res) => {
   }
 
   try {
+    // Filter applications by the selected date
     const [applications] = await pool.query(
-      `SELECT * FROM loan_applications WHERE DATE(createdAt) = ? ORDER BY createdAt DESC`,
+      `SELECT * FROM loan_applications 
+   WHERE DATE(createdAt) = ? 
+   ORDER BY createdAt DESC`,
       [date]
     );
 
@@ -146,6 +149,7 @@ exports.downloadApplicationsPDF = async (req, res) => {
     doc.fontSize(18).text(`Loan Applications - ${date}`, { align: "center" });
     doc.moveDown();
 
+    // Generate the PDF content for the filtered applications only
     applicationsWithChambers.forEach((app, index) => {
       doc.fontSize(14).text(`${index + 1}. ${app.fullName} (${app.loan_type})`);
       doc.fontSize(12).text(`Contact: ${app.contactNo || "-"}`);

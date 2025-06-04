@@ -32,7 +32,7 @@ const initialFormData = {
   monthlySalaryFromHospital: "",
   bankAmount: "",
   cashAmount: "",
-  bankAndCashAmount: ""
+  bankAndCashAmount: "",
 };
 
 const ApplicationForm = () => {
@@ -52,7 +52,7 @@ const ApplicationForm = () => {
     if (loanType === "Doctor") {
       if (doctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
         setChambersOnlyChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
         ]);
       }
       if (
@@ -60,7 +60,7 @@ const ApplicationForm = () => {
         chambersJobHolderAndChamber.length === 0
       ) {
         setChambersJobHolderAndChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
         ]);
       }
       if (doctorType === "Job Holder" && chambersJobHolder.length === 0) {
@@ -90,12 +90,12 @@ const ApplicationForm = () => {
         return {
           ...prev,
           existingLoan: value,
-          paymentRegularity: ""
+          paymentRegularity: "",
         };
       }
       return {
         ...prev,
-        [name]: value
+        [name]: value,
       };
     });
   };
@@ -125,14 +125,14 @@ const ApplicationForm = () => {
     // Initialize chambers based on new doctor type
     if (newDoctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
       setChambersOnlyChamber([
-        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
       ]);
     } else if (
       newDoctorType === "Job Holder & Chamber" &&
       chambersJobHolderAndChamber.length === 0
     ) {
       setChambersJobHolderAndChamber([
-        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
       ]);
     } else if (newDoctorType === "Job Holder") {
       setChambersJobHolder([]);
@@ -150,7 +150,7 @@ const ApplicationForm = () => {
     const [currentChambers, setChambersForType] = getCurrentChambers();
     setChambersForType([
       ...currentChambers,
-      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
     ]);
   };
 
@@ -203,29 +203,30 @@ const ApplicationForm = () => {
               className="application-form-control"
             />
           </Form.Group>
-          <Form.Group as={Col} controlId={`monthlyIncome-${idx}`}>
+
+          <Form.Group controlId={`chamberAddress-${idx}`}>
             <Form.Label className="application-form-label">
-              Monthly Income by Chamber
+              Chamber Address
             </Form.Label>
             <Form.Control
-              type="number"
-              name="monthlyIncome"
-              value={chamber.monthlyIncome}
+              as="textarea"
+              rows={2}
+              name="chamberAddress"
+              value={chamber.chamberAddress}
               onChange={(e) => handleChamberChange(idx, e)}
               required
               className="application-form-control"
             />
           </Form.Group>
         </Col>
-        <Form.Group controlId={`chamberAddress-${idx}`}>
+        <Form.Group as={Col} controlId={`monthlyIncome-${idx}`}>
           <Form.Label className="application-form-label">
-            Chamber Address
+            Monthly Income by Chamber
           </Form.Label>
           <Form.Control
-            as="textarea"
-            rows={2}
-            name="chamberAddress"
-            value={chamber.chamberAddress}
+            type="number"
+            name="monthlyIncome"
+            value={chamber.monthlyIncome}
             onChange={(e) => handleChamberChange(idx, e)}
             required
             className="application-form-control"
@@ -254,14 +255,14 @@ const ApplicationForm = () => {
       const chambersForSubmit = {
         jobHolder: chambersJobHolder,
         onlyChamber: chambersOnlyChamber,
-        jobHolderAndChamber: chambersJobHolderAndChamber
+        jobHolderAndChamber: chambersJobHolderAndChamber,
       };
 
       const loanRequirementTimeCombined = `${loanRequirementNumber} ${loanRequirementUnit}`;
 
       const baseData = {
         ...formData,
-        loanRequirementTime: loanRequirementTimeCombined
+        loanRequirementTime: loanRequirementTimeCombined,
       };
 
       if (loanType !== "Doctor") {
@@ -275,18 +276,18 @@ const ApplicationForm = () => {
               doctor_type: doctorType,
               salary_type: salaryType,
               chambers: chambersForSubmit,
-              ...baseData
+              ...baseData,
             }
           : {
               loan_type: loanType,
               salary_type: salaryType,
-              ...baseData
+              ...baseData,
             };
 
       const response = await fetch("http://localhost:5000/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {
@@ -332,7 +333,7 @@ const ApplicationForm = () => {
         <div className="application-form-header">
           <h2 className="application-form-title">Loan Application</h2>
           <p className="application-form-subtitle">
-            Fill in your details to apply for a loan
+            Fill in your details to apply for a Personal loan
           </p>
         </div>
 
@@ -371,7 +372,7 @@ const ApplicationForm = () => {
 
             <Form.Group className="mb-4" controlId="loanType">
               <Form.Label className="application-form-label">
-                Loan Type
+                Profession Type
               </Form.Label>
               <Form.Select
                 value={loanType}
@@ -437,23 +438,18 @@ const ApplicationForm = () => {
 
               {showSalaryAfterDesignation && (
                 <>
-                  <Form.Group className="mb-3" controlId="salaryDropdown">
+                  <Form.Group className="mb-3" controlId="bankAmount">
                     <Form.Label className="application-form-label">
-                      Salary
+                      Salary Amount
                     </Form.Label>
-                    <Form.Select
-                      value={salaryType}
-                      onChange={handleSalaryTypeChange}
+                    <Form.Control
+                      type="number"
+                      name="bankAmount"
+                      value={formData.bankAmount}
+                      onChange={handleChange}
                       required
                       className="application-form-control"
-                    >
-                      <option value="">-- Select --</option>
-                      <option value="Bank Amount">Bank Amount</option>
-                      <option value="Cash Amount">Cash Amount</option>
-                      <option value="Bank & Cash Amount">
-                        Bank & Cash Amount
-                      </option>
-                    </Form.Select>
+                    />
                   </Form.Group>
 
                   {salaryType === "Bank Amount" && (
@@ -940,21 +936,6 @@ const ApplicationForm = () => {
                       )}
                     </>
                   )}
-
-                  <Form.Group className="mb-3" controlId="hospitalName">
-                    <Form.Label className="application-form-label">
-                      Hospital Name
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="hospitalName"
-                      value={formData.hospitalName}
-                      onChange={handleChange}
-                      required
-                      className="application-form-control"
-                    />
-                  </Form.Group>
-
                   <Form.Group className="mb-3" controlId="hospitalAddress">
                     <Form.Label className="application-form-label">
                       Hospital Address
@@ -964,6 +945,19 @@ const ApplicationForm = () => {
                       rows={3}
                       name="hospitalAddress"
                       value={formData.hospitalAddress}
+                      onChange={handleChange}
+                      required
+                      className="application-form-control"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3" controlId="hospitalName">
+                    <Form.Label className="application-form-label">
+                      Hospital Name
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="hospitalName"
+                      value={formData.hospitalName}
                       onChange={handleChange}
                       required
                       className="application-form-control"
@@ -1123,10 +1117,10 @@ const ApplicationForm = () => {
               </Form.Group>
             </Row>
 
-            <Row className="mb-3 loan-requirement-row">
+            <Row className="mb-3 loan-requirement-row align-items-end">
               <Form.Group as={Col} controlId="loanRequirementNumber">
-                <Form.Label className="application-form-label">
-                  Loan Requirement Time
+                <Form.Label className="application-form-label fw-bold">
+                  Loan Duration
                 </Form.Label>
                 <Form.Control
                   type="number"
@@ -1135,13 +1129,16 @@ const ApplicationForm = () => {
                   onChange={(e) => setLoanRequirementNumber(e.target.value)}
                   required
                   className="application-form-control"
-                  placeholder="Enter number"
+                  placeholder="e.g. 3"
                 />
+                <Form.Text className="text-muted">
+                  How long do you need the loan for?
+                </Form.Text>
               </Form.Group>
 
               <Form.Group as={Col} controlId="loanRequirementUnit">
-                <Form.Label className="application-form-label d-none d-md-block">
-                  &nbsp;
+                <Form.Label className="application-form-label fw-bold">
+                  Duration Unit
                 </Form.Label>
                 <Form.Select
                   value={loanRequirementUnit}
@@ -1149,10 +1146,13 @@ const ApplicationForm = () => {
                   required
                   className="application-form-control"
                 >
-                  <option value="">Select Unit</option>
-                  <option value="month">Month</option>
-                  <option value="year">Year</option>
+                  <option value="">Select time period</option>
+                  <option value="month">Months</option>
+                  <option value="year">Years</option>
                 </Form.Select>
+                <Form.Text className="text-muted">
+                  Select months or years
+                </Form.Text>
               </Form.Group>
             </Row>
 

@@ -25,7 +25,7 @@ const Navbar = ({ activeTab, scrollToSection }) => {
     { id: "hero", label: "Home" },
     { id: "about", label: "About" },
     { id: "services", label: "Services" },
-    { id: "faq", label: "FAQ" }
+    { id: "faq", label: "FAQ" },
   ];
 
   const handleApplyNow = () => {
@@ -61,14 +61,14 @@ const Navbar = ({ activeTab, scrollToSection }) => {
               className="btn btn-primary apply-now-mobile"
               onClick={handleApplyNow}
             >
-              Apply Now
+              Apply For Loan
             </button>
           </div>
 
           {/* Desktop-only Apply Now button */}
           <div className="navbar-contact d-none-mobile">
             <button className="btn btn-primary" onClick={handleApplyNow}>
-              Apply Now
+              Apply For Loan
             </button>
           </div>
 
