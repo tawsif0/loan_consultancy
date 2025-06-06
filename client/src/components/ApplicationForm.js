@@ -32,7 +32,7 @@ const initialFormData = {
   monthlySalaryFromHospital: "",
   bankAmount: "",
   cashAmount: "",
-  bankAndCashAmount: "",
+  bankAndCashAmount: ""
 };
 
 const ApplicationForm = () => {
@@ -40,7 +40,7 @@ const ApplicationForm = () => {
   const [salaryType, setSalaryType] = useState("");
   const [doctorType, setDoctorType] = useState("Job Holder");
   const [loanRequirementNumber, setLoanRequirementNumber] = useState("");
-  const [loanRequirementUnit, setLoanRequirementUnit] = useState("");
+
   const [chambersJobHolder, setChambersJobHolder] = useState([]);
   const [chambersOnlyChamber, setChambersOnlyChamber] = useState([]);
   const [chambersJobHolderAndChamber, setChambersJobHolderAndChamber] =
@@ -52,7 +52,7 @@ const ApplicationForm = () => {
     if (loanType === "Doctor") {
       if (doctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
         setChambersOnlyChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
         ]);
       }
       if (
@@ -60,7 +60,7 @@ const ApplicationForm = () => {
         chambersJobHolderAndChamber.length === 0
       ) {
         setChambersJobHolderAndChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
         ]);
       }
       if (doctorType === "Job Holder" && chambersJobHolder.length === 0) {
@@ -90,12 +90,12 @@ const ApplicationForm = () => {
         return {
           ...prev,
           existingLoan: value,
-          paymentRegularity: "",
+          paymentRegularity: ""
         };
       }
       return {
         ...prev,
-        [name]: value,
+        [name]: value
       };
     });
   };
@@ -115,7 +115,6 @@ const ApplicationForm = () => {
 
     // Don't reset formData here
     setLoanRequirementNumber("");
-    setLoanRequirementUnit("");
   };
   const handleDoctorTypeChange = (e) => {
     const newDoctorType = e.target.value;
@@ -125,14 +124,14 @@ const ApplicationForm = () => {
     // Initialize chambers based on new doctor type
     if (newDoctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
       setChambersOnlyChamber([
-        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
       ]);
     } else if (
       newDoctorType === "Job Holder & Chamber" &&
       chambersJobHolderAndChamber.length === 0
     ) {
       setChambersJobHolderAndChamber([
-        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
       ]);
     } else if (newDoctorType === "Job Holder") {
       setChambersJobHolder([]);
@@ -150,7 +149,7 @@ const ApplicationForm = () => {
     const [currentChambers, setChambersForType] = getCurrentChambers();
     setChambersForType([
       ...currentChambers,
-      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
+      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
     ]);
   };
 
@@ -241,7 +240,7 @@ const ApplicationForm = () => {
     setSalaryType("");
     setDoctorType("Job Holder");
     setLoanRequirementNumber("");
-    setLoanRequirementUnit("");
+
     setChambersJobHolder([]);
     setChambersOnlyChamber([]);
     setChambersJobHolderAndChamber([]);
@@ -255,14 +254,12 @@ const ApplicationForm = () => {
       const chambersForSubmit = {
         jobHolder: chambersJobHolder,
         onlyChamber: chambersOnlyChamber,
-        jobHolderAndChamber: chambersJobHolderAndChamber,
+        jobHolderAndChamber: chambersJobHolderAndChamber
       };
-
-      const loanRequirementTimeCombined = `${loanRequirementNumber} ${loanRequirementUnit}`;
 
       const baseData = {
         ...formData,
-        loanRequirementTime: loanRequirementTimeCombined,
+        loanRequirementTime: loanRequirementNumber // Now using the text directly
       };
 
       if (loanType !== "Doctor") {
@@ -276,18 +273,18 @@ const ApplicationForm = () => {
               doctor_type: doctorType,
               salary_type: salaryType,
               chambers: chambersForSubmit,
-              ...baseData,
+              ...baseData
             }
           : {
               loan_type: loanType,
               salary_type: salaryType,
-              ...baseData,
+              ...baseData
             };
 
       const response = await fetch("http://localhost:5000/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(dataToSend)
       });
 
       if (response.ok) {
@@ -299,7 +296,6 @@ const ApplicationForm = () => {
           setSalaryType("");
           setDoctorType("Job Holder");
           setLoanRequirementNumber("");
-          setLoanRequirementUnit("");
           setChambersJobHolder([]);
           setChambersOnlyChamber([]);
           setChambersJobHolderAndChamber([]);
@@ -1118,40 +1114,21 @@ const ApplicationForm = () => {
             </Row>
 
             <Row className="mb-3 loan-requirement-row align-items-end">
-              <Form.Group as={Col} controlId="loanRequirementNumber">
+              <Form.Group as={Col} controlId="loanRequirementTime">
                 <Form.Label className="application-form-label fw-bold">
                   Loan Duration
                 </Form.Label>
                 <Form.Control
-                  type="number"
-                  min={1}
+                  type="text"
                   value={loanRequirementNumber}
                   onChange={(e) => setLoanRequirementNumber(e.target.value)}
                   required
                   className="application-form-control"
-                  placeholder="e.g. 3"
+                  placeholder="e.g. after 3 months"
                 />
                 <Form.Text className="text-muted">
-                  How long do you need the loan for?
-                </Form.Text>
-              </Form.Group>
-
-              <Form.Group as={Col} controlId="loanRequirementUnit">
-                <Form.Label className="application-form-label fw-bold">
-                  Duration Unit
-                </Form.Label>
-                <Form.Select
-                  value={loanRequirementUnit}
-                  onChange={(e) => setLoanRequirementUnit(e.target.value)}
-                  required
-                  className="application-form-control"
-                >
-                  <option value="">Select time period</option>
-                  <option value="month">Months</option>
-                  <option value="year">Years</option>
-                </Form.Select>
-                <Form.Text className="text-muted">
-                  Select months or years
+                  Enter the duration you need the loan after (e.g. "6 months",
+                  "1 year", "after 2 years")
                 </Form.Text>
               </Form.Group>
             </Row>

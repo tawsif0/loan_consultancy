@@ -31,7 +31,7 @@ exports.submitApplication = async (req, res) => {
                 applicationId,
                 chamber.chamberPlaceName || null,
                 chamber.chamberAddress || null,
-                chamber.monthlyIncome || null,
+                chamber.monthlyIncome || null
               ]
             );
           }
@@ -65,7 +65,7 @@ exports.getAllApplications = async (req, res) => {
         const groupedChambers = {
           jobHolder: [],
           onlyChamber: [],
-          jobHolderAndChamber: [],
+          jobHolderAndChamber: []
         };
 
         if (app.doctor_type === "Job Holder") {
@@ -78,7 +78,7 @@ exports.getAllApplications = async (req, res) => {
 
         return {
           ...app,
-          chambers: groupedChambers,
+          chambers: groupedChambers
         };
       })
     );
@@ -110,14 +110,19 @@ exports.downloadApplicationsPDF = async (req, res) => {
   }
 
   try {
-    // Filter applications by the selected date
+    // Convert the input date to UTC date range to account for timezones
+    const startDate = new Date(date);
+    startDate.setUTCHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setUTCHours(23, 59, 59, 999);
+
+    // Filter applications by the selected date range in UTC
     const [applications] = await pool.query(
       `SELECT * FROM loan_applications 
-   WHERE DATE(createdAt) = ? 
-   ORDER BY createdAt DESC`,
-      [date]
+       WHERE createdAt BETWEEN ? AND ?
+       ORDER BY createdAt DESC`,
+      [startDate.toISOString(), endDate.toISOString()]
     );
-
     if (!applications.length) {
       return res
         .status(404)
@@ -149,6 +154,18 @@ exports.downloadApplicationsPDF = async (req, res) => {
     doc.fontSize(18).text(`Loan Applications - ${date}`, { align: "center" });
     doc.moveDown();
 
+    const formatDateForDisplay = (dateString) => {
+      if (!dateString) return "-";
+      const date = new Date(dateString);
+      // Format as local date without timezone conversion
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "Asia/Dhaka" // Adjust this to your local timezone
+      });
+    };
+
     // Generate the PDF content for the filtered applications only
     applicationsWithChambers.forEach((app, index) => {
       doc.fontSize(14).text(`${index + 1}. ${app.fullName} (${app.loan_type})`);
@@ -158,7 +175,7 @@ exports.downloadApplicationsPDF = async (req, res) => {
           app.requiredAmount || 0
         ).toLocaleString()}`
       );
-      doc.text(`Date: ${app.createdAt.toISOString().split("T")[0]}`);
+      doc.text(`Date: ${formatDateForDisplay(app.createdAt)}`);
 
       doc.moveDown().font("Helvetica-Bold").text("Personal Information:");
       doc.font("Helvetica");
