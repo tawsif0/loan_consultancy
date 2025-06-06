@@ -1116,7 +1116,7 @@ const ApplicationForm = () => {
             <Row className="mb-3 loan-requirement-row align-items-end">
               <Form.Group as={Col} controlId="loanRequirementTime">
                 <Form.Label className="application-form-label fw-bold">
-                  Loan Duration
+                  Loan Requirement Time
                 </Form.Label>
                 <Form.Control
                   type="text"
