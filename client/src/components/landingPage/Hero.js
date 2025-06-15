@@ -32,13 +32,13 @@ const Hero = ({ scrollToSection }) => {
             <h1 className="hero-heading">
               <span className="hero-heading-line">Smart Loan Solutions</span>
               <span className="hero-heading-line">
-                for <span className="hero-heading-highlight">Your Dreams</span>
+                for <span className="hero-heading-highlight">Your Future</span>
               </span>
             </h1>
             <p className="hero-description">
-              Calculate your perfect loan plan instantly. Government employees,
-              professionals, and private job holders get special rates with our
-              exclusive offers.
+              Easily calculate your perfect loan plan. We help government
+              employees, private job holders, teachers, doctors, and garment
+              workers get personal loans with special benefits.
             </p>
             <div className="hero-actions">
               <button

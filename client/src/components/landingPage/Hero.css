@@ -96,7 +96,7 @@
 }
 
 .hero-btn {
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.2rem;
   border-radius: 50px;
   font-weight: 600;
   font-size: 0.9rem;
@@ -288,6 +288,7 @@
   -webkit-appearance: none;
   appearance: none;
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .hero-range-input:hover {

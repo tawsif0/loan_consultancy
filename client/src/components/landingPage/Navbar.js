@@ -1,6 +1,7 @@
 // src/components/Navbar.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import logo from "../../assets/images/logo.png"; // Import your logo image
 import "./Navbar.css";
 
 const Navbar = ({ activeTab, scrollToSection }) => {
@@ -38,7 +39,11 @@ const Navbar = ({ activeTab, scrollToSection }) => {
       <div className="container">
         <div className="navbar-content">
           <div className="navbar-logo">
-            <span>Loan</span>Consult
+            <img
+              src={logo}
+              alt="Loan Consultancy Firm Logo"
+              className="logo-img"
+            />
           </div>
 
           <div className={`navbar-links ${mobileMenuOpen ? "open" : ""}`}>

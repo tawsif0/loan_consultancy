@@ -17,12 +17,9 @@ const Footer = () => {
           {/* Left-aligned content, left positioned */}
           <div className="footer-about">
             <div className="footer-logo">
-              <span>Loan</span>Consult
+              <span>Loan</span> Consultancy Firm
             </div>
-            <p>
-              Professional loan consultancy services helping individuals find
-              the best financial solutions tailored to their needs.
-            </p>
+            <p>Helping you connect with the right loan, the right way.</p>
           </div>
 
           {/* Center aligned section, but text still left-aligned */}
@@ -50,15 +47,11 @@ const Footer = () => {
             <ul>
               <li>
                 <i className="fas fa-map-marker-alt"></i>
-                <span>123 Financial Street, Business District</span>
-              </li>
-              <li>
-                <i className="fas fa-phone-alt"></i>
-                <span>+1 (555) 123-4567</span>
+                <span>12/A, Finance Road, Motijheel, Dhaka-1000</span>
               </li>
               <li>
                 <i className="fas fa-envelope"></i>
-                <span>info@loanconsult.com</span>
+                <span> info@loanconsultancyfirm.com</span>
               </li>
             </ul>
           </div>
@@ -66,7 +59,8 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <p>
-            &copy; {new Date().getFullYear()} LoanConsult. All rights reserved.
+            &copy; {new Date().getFullYear()} Loan Consultancy Firm All rights
+            reserved.
           </p>
         </div>
       </div>

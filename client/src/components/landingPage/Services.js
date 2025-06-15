@@ -13,65 +13,68 @@ const Services = () => {
 
   const services = [
     {
-      title: "Government Employee Loans",
+      title: "Government Employees",
       description:
-        "Specialized loan solutions for government employees with competitive interest rates and flexible repayment options.",
+        "Tailored personal loan solutions for government service holders in Bangladesh.",
       features: [
         "Low interest rates",
         "Flexible repayment terms",
         "Minimal documentation",
-        "Quick approval"
+        "Quick approval",
       ],
-      image: govLoanImg
+      image: govLoanImg,
+      icon: "fa-landmark",
     },
     {
-      title: "Private Job Holder Loans",
-      description:
-        "Tailored loan options for private sector employees with stable income and employment history.",
+      title: "Private Job Holders",
+      description: "Designed for professionals working in the private sector.",
       features: [
-        "Competitive rates",
-        "Customized EMI options",
-        "Fast processing",
-        "Minimal paperwork"
+        "Special bank offers for corporate employees",
+        "Easy eligibility checks",
+        "Fast processing time",
+        "Personalized loan amount estimation",
       ],
-      image: privateLoanImg
+      image: privateLoanImg,
+      icon: "fa-briefcase",
     },
     {
-      title: "Doctor Loans",
-      description:
-        "Special loan programs designed exclusively for medical professionals including job holders and chamber practitioners.",
+      title: "Doctors",
+      description: "Priority personal loan services for medical professionals.",
       features: [
-        "Higher loan amounts",
-        "Special doctor categories",
-        "Flexible repayment",
-        "Quick disbursal"
+        "High loan approval rates",
+        "Special terms for MBBS/BDS/FCPS holders",
+        "Higher loan limits",
+        "Faster disbursement",
       ],
-      image: doctorLoanImg
+      image: doctorLoanImg,
+      icon: "fa-user-md",
     },
     {
-      title: "Garments Job Holder Loans",
+      title: "Garment Sector Workers",
       description:
-        "Customized financial solutions for employees in the garments industry with simplified eligibility criteria.",
+        "Helping garment sector workers access simple and secure personal loans.",
       features: [
-        "Easy eligibility",
-        "Salary-based loans",
-        "No collateral required",
-        "Quick processing"
+        "Loans for mid to higher income garment workers",
+        "Smooth and hassle-free application process",
+        "Affordable monthly installments",
+        "Support for first-time borrowers",
       ],
-      image: garmentsLoanImg
+      image: garmentsLoanImg,
+      icon: "fa-tshirt",
     },
     {
-      title: "Teacher Loans",
+      title: "Teachers",
       description:
-        "Education professional-focused loan programs with benefits tailored for teachers and academic staff.",
+        "Loan solutions specially designed for school, college, and university teachers.",
       features: [
-        "Low processing fees",
-        "Long tenure options",
-        "Special discounts",
-        "Easy documentation"
+        "Loans for both public and private institution teachers",
+        "Easy eligibility verification",
+        "Low EMIs for peace of mind",
+        "Assistance throughout the process",
       ],
-      image: teacherLoanImg
-    }
+      image: teacherLoanImg,
+      icon: "fa-chalkboard-teacher",
+    },
   ];
 
   return (
@@ -79,8 +82,7 @@ const Services = () => {
       <div className="container">
         <h2 className="section-title">Our Services</h2>
         <p className="section-subtitle">
-          We specialize in providing loan consultancy for various professional
-          groups
+          We specialize in personal loan consultancy for:
         </p>
 
         <div className="services-tabs">

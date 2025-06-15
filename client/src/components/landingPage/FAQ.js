@@ -9,30 +9,30 @@ const FAQ = () => {
 
   const faqs = [
     {
-      question: "Is your loan consultancy service really free?",
+      question: "Is your loan consultancy service free?",
       answer:
-        "Yes, our consultancy service is completely free. We provide expert advice and guidance without any charges. We don't handle any transactions or take any fees for our consultation services."
+        "Yes. We do not charge for consultation or guidance. Our goal is to help you get the right loan smoothly.",
     },
     {
-      question: "Who can use your loan consultancy services?",
+      question: "Who can apply through your service?",
       answer:
-        "Our services are available to government employees, private job holders, doctors (job holders, chamber practitioners, or both), garments job holders, and teachers. We provide specialized guidance for each profession."
+        "We offer services mainly to salaried individuals: doctors, teachers, government and private employees, and garment sector professionals.",
     },
     {
       question: "How long does the loan approval process take?",
       answer:
-        "The loan approval process varies depending on the type of loan and the financial institution. However, with our guidance, we can help expedite the process. Typically, it takes between 3 to 10 working days after submitting all required documents."
+        "Typically between 1 to 3 weeks, depending on your employment profile, bank procedures, and the completeness of your application.",
     },
     {
-      question: "What documents are required for loan applications?",
+      question: "Do you handle or collect any money from clients?",
       answer:
-        "Document requirements vary by loan type and lender. Generally, you'll need proof of identity, address proof, income documents, employment verification, and bank statements. We provide a customized checklist based on your specific loan requirements."
+        "No. We do not collect any fees or handle any financial transactions. All dealings happen directly between you and the bank.",
     },
     {
-      question: "Can you help with loan applications if I have existing loans?",
+      question: "Can I still apply if I already have a loan?",
       answer:
-        "Yes, we can assist you even if you have existing loans. We'll evaluate your current financial situation and help you find the best options that consider your existing liabilities. We provide guidance on debt consolidation options as well."
-    }
+        "Yes. Based on your current situation, we can assist with top-up or restructuring options, depending on bank policy.",
+    },
   ];
 
   const toggleFAQ = (index) => {

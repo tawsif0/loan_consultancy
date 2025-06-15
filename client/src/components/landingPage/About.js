@@ -9,8 +9,8 @@ const About = () => {
       <div className="container">
         <h2 className="section-title">About Us</h2>
         <p className="section-subtitle">
-          We provide specialized loan consultancy services tailored to your
-          specific needs and employment type.
+          We provide expert personal loan guidance to salaried individuals
+          across Bangladesh
         </p>
 
         <div className="about-content">
@@ -24,22 +24,41 @@ const About = () => {
           </div>
 
           <div className="about-text">
-            <h3>Professional Loan Consultation Services</h3>
+            {/* <h3>Who We Are</h3>
             <p>
-              With over 15 years of experience in the financial industry, we've
-              helped thousands of clients secure the best loan options tailored
-              to their specific circumstances. Our expert consultants understand
-              the unique requirements of different professions.
+              Loan Consultancy Firm is a specialized service provider offering
+              expert personal loan guidance to salaried individuals across
+              Bangladesh. With over 7 years of industry experience, we simplify
+              the loan journey — from identifying the right bank to completing
+              the necessary application steps.
+            </p> */}
+
+            <h3>Our Mission</h3>
+            <p>
+              To help professionals in Bangladesh gain access to affordable and
+              reliable personal loans, while ensuring clarity, transparency, and
+              peace of mind.
             </p>
 
+            <h3>Why Choose Us</h3>
             <div className="about-features">
               <div className="feature-item">
                 <div className="feature-icon">
                   <i className="fas fa-check-circle"></i>
                 </div>
                 <div className="feature-text">
+                  <h4>7+ Years Experience</h4>
+                  <p>Extensive consultancy experience in the industry</p>
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <div className="feature-text">
                   <h4>Free Consultation</h4>
-                  <p>No fees for our expert advice and guidance</p>
+                  <p>No charges for our expert advice and guidance</p>
                 </div>
               </div>
 
@@ -48,8 +67,8 @@ const About = () => {
                   <i className="fas fa-check-circle"></i>
                 </div>
                 <div className="feature-text">
-                  <h4>No Personal Transactions</h4>
-                  <p>We don't handle your money, only provide guidance</p>
+                  <h4>No Client Funds Handling</h4>
+                  <p>We never collect or handle client funds</p>
                 </div>
               </div>
 
@@ -58,8 +77,30 @@ const About = () => {
                   <i className="fas fa-check-circle"></i>
                 </div>
                 <div className="feature-text">
-                  <h4>Wide Range of Loan Types</h4>
-                  <p>Specialized solutions for various professions</p>
+                  <h4>Bank-Trusted Guidance</h4>
+                  <p>
+                    Professional advice recognized by financial institutions
+                  </p>
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <div className="feature-text">
+                  <h4>Proven Track Record</h4>
+                  <p>Professional team with successful history</p>
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <div className="feature-text">
+                  <h4>Confidential Process</h4>
+                  <p>Fully secure and private service</p>
                 </div>
               </div>
             </div>
