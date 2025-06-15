@@ -26,7 +26,7 @@ const Hero = ({ scrollToSection }) => {
 
   return (
     <section className="hero-section" id="hero">
-      <div className="hero-container container">
+      <div className="hero-container container my-5">
         <div className="hero-content">
           <div className="hero-text">
             <h1 className="hero-heading">
