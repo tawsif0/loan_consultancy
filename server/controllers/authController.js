@@ -8,7 +8,7 @@ exports.login = async (req, res) => {
 
   try {
     const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [
-      username
+      username,
     ]);
     if (users.length === 0)
       return res.status(401).json({ error: "Invalid credentials" });
@@ -17,7 +17,7 @@ exports.login = async (req, res) => {
     if (!isValid) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = jwt.sign({ id: users[0].id }, process.env.JWT_SECRET, {
-      expiresIn: "1h"
+      expiresIn: "1h",
     });
     res.json({ token });
   } catch (err) {

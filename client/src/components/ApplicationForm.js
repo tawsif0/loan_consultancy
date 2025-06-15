@@ -32,7 +32,7 @@ const initialFormData = {
   monthlySalaryFromHospital: "",
   bankAmount: "",
   cashAmount: "",
-  bankAndCashAmount: ""
+  bankAndCashAmount: "",
 };
 
 const ApplicationForm = () => {
@@ -52,7 +52,7 @@ const ApplicationForm = () => {
     if (loanType === "Doctor") {
       if (doctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
         setChambersOnlyChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
         ]);
       }
       if (
@@ -60,7 +60,7 @@ const ApplicationForm = () => {
         chambersJobHolderAndChamber.length === 0
       ) {
         setChambersJobHolderAndChamber([
-          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+          { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
         ]);
       }
       if (doctorType === "Job Holder" && chambersJobHolder.length === 0) {
@@ -90,12 +90,12 @@ const ApplicationForm = () => {
         return {
           ...prev,
           existingLoan: value,
-          paymentRegularity: ""
+          paymentRegularity: "",
         };
       }
       return {
         ...prev,
-        [name]: value
+        [name]: value,
       };
     });
   };
@@ -124,14 +124,14 @@ const ApplicationForm = () => {
     // Initialize chambers based on new doctor type
     if (newDoctorType === "Only Chamber" && chambersOnlyChamber.length === 0) {
       setChambersOnlyChamber([
-        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
       ]);
     } else if (
       newDoctorType === "Job Holder & Chamber" &&
       chambersJobHolderAndChamber.length === 0
     ) {
       setChambersJobHolderAndChamber([
-        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+        { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
       ]);
     } else if (newDoctorType === "Job Holder") {
       setChambersJobHolder([]);
@@ -149,7 +149,7 @@ const ApplicationForm = () => {
     const [currentChambers, setChambersForType] = getCurrentChambers();
     setChambersForType([
       ...currentChambers,
-      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" }
+      { chamberPlaceName: "", chamberAddress: "", monthlyIncome: "" },
     ]);
   };
 
@@ -254,12 +254,12 @@ const ApplicationForm = () => {
       const chambersForSubmit = {
         jobHolder: chambersJobHolder,
         onlyChamber: chambersOnlyChamber,
-        jobHolderAndChamber: chambersJobHolderAndChamber
+        jobHolderAndChamber: chambersJobHolderAndChamber,
       };
 
       const baseData = {
         ...formData,
-        loanRequirementTime: loanRequirementNumber // Now using the text directly
+        loanRequirementTime: loanRequirementNumber, // Now using the text directly
       };
 
       if (loanType !== "Doctor") {
@@ -273,18 +273,18 @@ const ApplicationForm = () => {
               doctor_type: doctorType,
               salary_type: salaryType,
               chambers: chambersForSubmit,
-              ...baseData
+              ...baseData,
             }
           : {
               loan_type: loanType,
               salary_type: salaryType,
-              ...baseData
+              ...baseData,
             };
 
       const response = await fetch("http://localhost:5000/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {

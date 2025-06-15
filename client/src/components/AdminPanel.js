@@ -26,7 +26,7 @@ const AdminPanel = () => {
         const response = await axios.get(
           "http://localhost:5000/api/applications",
           {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
         setApplications(response.data);
@@ -85,7 +85,7 @@ const AdminPanel = () => {
       "Private Job Holder": "success",
       Doctor: "danger",
       "Garments Job Holder": "warning",
-      Teacher: "info"
+      Teacher: "info",
     };
     return <Badge bg={types[type] || "secondary"}>{type}</Badge>;
   };
@@ -157,7 +157,7 @@ const AdminPanel = () => {
     const doctorTypeKeyMap = {
       "Job Holder": "jobHolder",
       "Only Chamber": "onlyChamber",
-      "Job Holder & Chamber": "jobHolderAndChamber"
+      "Job Holder & Chamber": "jobHolderAndChamber",
     };
 
     const doctorChambers =
@@ -403,7 +403,7 @@ const AdminPanel = () => {
       const response = await fetch(
         `http://localhost:5000/api/applications/download?date=${selectedDate}`,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
