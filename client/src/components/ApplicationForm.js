@@ -85,17 +85,31 @@ const ApplicationForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => {
+      const newValue = [
+        "requiredAmount",
+        "monthlySalaryFromHospital",
+        "bankAmount",
+        "cashAmount",
+        "bankAndCashAmount",
+      ].includes(name)
+        ? value === ""
+          ? ""
+          : Number(value)
+        : value;
+
       if (name === "existingLoan" && value === "No") {
         return {
           ...prev,
           existingLoan: value,
           paymentRegularity: "",
+          [name]: newValue,
         };
       }
       return {
         ...prev,
-        [name]: value,
+        [name]: newValue,
       };
     });
   };
@@ -136,13 +150,10 @@ const ApplicationForm = () => {
     } else if (newDoctorType === "Job Holder") {
       setChambersJobHolder([]);
     }
-
-    // Don't reset formData here
   };
 
   const handleSalaryTypeChange = (e) => {
-    setSalaryType(e.target.value);
-    // Don't reset formData here
+    setSalaryType(e.target.value || null);
   };
 
   const handleAddChamber = () => {
@@ -250,16 +261,51 @@ const ApplicationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Helper function to clean numeric fields
+    const cleanNumericFields = (data) => {
+      const numericFields = [
+        "requiredAmount",
+        "monthlySalaryFromHospital",
+        "bankAmount",
+        "cashAmount",
+        "bankAndCashAmount",
+      ];
+
+      const cleaned = { ...data };
+
+      numericFields.forEach((field) => {
+        if (cleaned[field] === "") {
+          cleaned[field] = null; // Convert empty string to null
+        } else if (cleaned[field]) {
+          cleaned[field] = Number(cleaned[field]); // Ensure numeric values
+        }
+      });
+
+      return cleaned;
+    };
+
     try {
+      // Clean chamber data
+      const cleanChambers = (chambers) =>
+        chambers.map((chamber) => ({
+          ...chamber,
+          monthlyIncome:
+            chamber.monthlyIncome === "" ? null : Number(chamber.monthlyIncome),
+        }));
+
       const chambersForSubmit = {
-        jobHolder: chambersJobHolder,
-        onlyChamber: chambersOnlyChamber,
-        jobHolderAndChamber: chambersJobHolderAndChamber,
+        jobHolder: cleanChambers(chambersJobHolder),
+        onlyChamber: cleanChambers(chambersOnlyChamber),
+        jobHolderAndChamber: cleanChambers(chambersJobHolderAndChamber),
       };
 
+      // Clean all numeric fields in form data
+      const cleanedFormData = cleanNumericFields(formData);
+
       const baseData = {
-        ...formData,
-        loanRequirementTime: loanRequirementNumber, // Now using the text directly
+        ...cleanedFormData,
+        loanRequirementTime: loanRequirementNumber,
+        paymentRegularity: formData.paymentRegularity || null, // Handle empty payment regularity
       };
 
       if (loanType !== "Doctor") {
@@ -270,27 +316,28 @@ const ApplicationForm = () => {
         loanType === "Doctor"
           ? {
               loan_type: loanType,
-              doctor_type: doctorType,
-              salary_type: salaryType,
+              doctorType: doctorType, // Changed to match DB column (camelCase)
+              salaryType: salaryType || null,
               chambers: chambersForSubmit,
               ...baseData,
             }
           : {
               loan_type: loanType,
-              salary_type: salaryType,
+              salaryType: salaryType || null,
               ...baseData,
             };
 
-      const response = await fetch("http://localhost:5000/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
-      });
+      const response = await fetch(
+        "https://loanapi.arbeittechnology.com/api/applications",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        }
+      );
 
       if (response.ok) {
         toast.success("Application submitted successfully!");
-
-        // ✅ Delay the reset slightly to allow UI update & message display
         setTimeout(() => {
           setLoanType("Govt. Employee");
           setSalaryType("");
@@ -299,7 +346,7 @@ const ApplicationForm = () => {
           setChambersJobHolder([]);
           setChambersOnlyChamber([]);
           setChambersJobHolderAndChamber([]);
-          setFormData(initialFormData); // Clear only here
+          setFormData(initialFormData);
         }, 500);
       } else {
         const errorData = await response.json();
@@ -601,7 +648,7 @@ const ApplicationForm = () => {
                       Salary
                     </Form.Label>
                     <Form.Select
-                      value={salaryType}
+                      value={salaryType || ""}
                       onChange={handleSalaryTypeChange}
                       required
                       className="application-form-control"
@@ -723,7 +770,7 @@ const ApplicationForm = () => {
                       Salary
                     </Form.Label>
                     <Form.Select
-                      value={salaryType}
+                      value={salaryType || ""}
                       onChange={handleSalaryTypeChange}
                       required
                       className="application-form-control"
@@ -866,7 +913,7 @@ const ApplicationForm = () => {
                           Salary
                         </Form.Label>
                         <Form.Select
-                          value={salaryType}
+                          value={salaryType || ""}
                           onChange={handleSalaryTypeChange}
                           required
                           className="application-form-control"
@@ -1025,7 +1072,7 @@ const ApplicationForm = () => {
                       Monthly Salary From Hospital
                     </Form.Label>
                     <Form.Select
-                      value={salaryType}
+                      value={salaryType || ""}
                       onChange={handleSalaryTypeChange}
                       required
                       className="application-form-control"
@@ -1049,8 +1096,17 @@ const ApplicationForm = () => {
                         type="number"
                         name="monthlySalaryFromHospital"
                         value={formData.monthlySalaryFromHospital}
-                        onChange={handleChange}
-                        required
+                        onChange={(e) =>
+                          handleChange({
+                            target: {
+                              name: e.target.name,
+                              value:
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                            },
+                          })
+                        }
                         className="application-form-control"
                       />
                     </Form.Group>
@@ -1065,8 +1121,17 @@ const ApplicationForm = () => {
                         type="number"
                         name="monthlySalaryFromHospital"
                         value={formData.monthlySalaryFromHospital}
-                        onChange={handleChange}
-                        required
+                        onChange={(e) =>
+                          handleChange({
+                            target: {
+                              name: e.target.name,
+                              value:
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                            },
+                          })
+                        }
                         className="application-form-control"
                       />
                     </Form.Group>
@@ -1084,8 +1149,17 @@ const ApplicationForm = () => {
                         type="number"
                         name="monthlySalaryFromHospital"
                         value={formData.monthlySalaryFromHospital}
-                        onChange={handleChange}
-                        required
+                        onChange={(e) =>
+                          handleChange({
+                            target: {
+                              name: e.target.name,
+                              value:
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                            },
+                          })
+                        }
                         className="application-form-control"
                       />
                     </Form.Group>

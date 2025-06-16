@@ -31,7 +31,7 @@ exports.submitApplication = async (req, res) => {
                 applicationId,
                 chamber.chamberPlaceName || null,
                 chamber.chamberAddress || null,
-                chamber.monthlyIncome || null
+                chamber.monthlyIncome || null,
               ]
             );
           }
@@ -65,7 +65,7 @@ exports.getAllApplications = async (req, res) => {
         const groupedChambers = {
           jobHolder: [],
           onlyChamber: [],
-          jobHolderAndChamber: []
+          jobHolderAndChamber: [],
         };
 
         if (app.doctor_type === "Job Holder") {
@@ -78,7 +78,7 @@ exports.getAllApplications = async (req, res) => {
 
         return {
           ...app,
-          chambers: groupedChambers
+          chambers: groupedChambers,
         };
       })
     );
@@ -162,7 +162,7 @@ exports.downloadApplicationsPDF = async (req, res) => {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-        timeZone: "Asia/Dhaka" // Adjust this to your local timezone
+        timeZone: "Asia/Dhaka", // Adjust this to your local timezone
       });
     };
 

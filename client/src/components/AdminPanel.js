@@ -24,7 +24,7 @@ const AdminPanel = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:5000/api/applications",
+          "https://loanapi.arbeittechnology.com/api/applications",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -401,7 +401,7 @@ const AdminPanel = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:5000/api/applications/download?date=${selectedDate}`,
+        `https://loanapi.arbeittechnology.com/api/applications/download?date=${selectedDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
