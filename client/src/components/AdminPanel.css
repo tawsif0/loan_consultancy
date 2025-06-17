@@ -423,12 +423,8 @@
 }
 
 .adminPanel-chamberCard {
-  background: var(--adminPanel-white);
-  border-radius: 8px;
-  padding: 1rem;
+  padding: 1rem 0rem;
   margin-bottom: 1rem;
-  border: 1px solid var(--adminPanel-lightGray);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .adminPanel-noData {

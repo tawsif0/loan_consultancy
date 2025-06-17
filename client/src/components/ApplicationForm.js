@@ -261,105 +261,96 @@ const ApplicationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Helper function to clean numeric fields
-    const cleanNumericFields = (data) => {
-      const numericFields = [
-        "requiredAmount",
-        "monthlySalaryFromHospital",
-        "bankAmount",
-        "cashAmount",
-        "bankAndCashAmount",
-      ];
-
-      const cleaned = { ...data };
-
-      numericFields.forEach((field) => {
-        if (cleaned[field] === "") {
-          cleaned[field] = null; // Convert empty string to null
-        } else if (cleaned[field]) {
-          cleaned[field] = Number(cleaned[field]); // Ensure numeric values
-        }
-      });
-
-      return cleaned;
-    };
-
     try {
-      // Clean chamber data
-      const cleanChambers = (chambers) =>
-        chambers.map((chamber) => ({
-          ...chamber,
+      // 1. Prepare chambers data only for Doctors
+      let chambersToSend = null;
+      if (loanType === "Doctor") {
+        const currentChambers =
+          doctorType === "Job Holder"
+            ? chambersJobHolder
+            : doctorType === "Only Chamber"
+            ? chambersOnlyChamber
+            : chambersJobHolderAndChamber;
+
+        chambersToSend = currentChambers.map((chamber) => ({
+          chamberPlaceName: chamber.chamberPlaceName || "",
+          chamberAddress: chamber.chamberAddress || "",
           monthlyIncome:
             chamber.monthlyIncome === "" ? null : Number(chamber.monthlyIncome),
         }));
-
-      const chambersForSubmit = {
-        jobHolder: cleanChambers(chambersJobHolder),
-        onlyChamber: cleanChambers(chambersOnlyChamber),
-        jobHolderAndChamber: cleanChambers(chambersJobHolderAndChamber),
-      };
-
-      // Clean all numeric fields in form data
-      const cleanedFormData = cleanNumericFields(formData);
-
-      const baseData = {
-        ...cleanedFormData,
-        loanRequirementTime: loanRequirementNumber,
-        paymentRegularity: formData.paymentRegularity || null, // Handle empty payment regularity
-      };
-
-      if (loanType !== "Doctor") {
-        delete baseData.chambers;
       }
 
-      const dataToSend =
-        loanType === "Doctor"
-          ? {
-              loan_type: loanType,
-              doctorType: doctorType, // Changed to match DB column (camelCase)
-              salaryType: salaryType || null,
-              chambers: chambersForSubmit,
-              ...baseData,
-            }
-          : {
-              loan_type: loanType,
-              salaryType: salaryType || null,
-              ...baseData,
-            };
+      // 2. Prepare payload (without chambers field for non-Doctor types)
+      const payload = {
+        fullName: formData.fullName,
+        contactNo: formData.contactNo,
+        requiredAmount:
+          formData.requiredAmount === ""
+            ? null
+            : Number(formData.requiredAmount),
+        presentAddress: formData.presentAddress,
+        existingLoan: formData.existingLoan,
+        paymentRegularity: formData.paymentRegularity || null,
+        comments: formData.comments || null,
+        department: formData.department || null,
+        designation: formData.designation || null,
+        organizationName: formData.organizationName || null,
+        organizationAddress: formData.organizationAddress || null,
+        jobGrade: formData.jobGrade || null,
+        instituteName: formData.instituteName || null,
+        instituteAddress: formData.instituteAddress || null,
+        companyName: formData.companyName || null,
+        companyAddress: formData.companyAddress || null,
+        hospitalName: formData.hospitalName || null,
+        hospitalAddress: formData.hospitalAddress || null,
+        bmdcAge: formData.bmdcAge || null,
+        monthlySalaryFromHospital:
+          formData.monthlySalaryFromHospital === ""
+            ? null
+            : Number(formData.monthlySalaryFromHospital),
+        bankAmount:
+          formData.bankAmount === "" ? null : Number(formData.bankAmount),
+        cashAmount:
+          formData.cashAmount === "" ? null : Number(formData.cashAmount),
+        bankAndCashAmount:
+          formData.bankAndCashAmount === ""
+            ? null
+            : Number(formData.bankAndCashAmount),
+        loanType: loanType,
+        doctorType: loanType === "Doctor" ? doctorType : null,
+        salaryType: salaryType || null,
+        loanRequirementTime: loanRequirementNumber,
+        chambers: chambersToSend, // Will be null for non-Doctor types
+      };
 
+      console.log("Submitting payload:", payload);
+
+      // 3. Send request
       const response = await fetch(
         "https://loanapi.arbeittechnology.com/api/applications",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(dataToSend),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(payload),
         }
       );
 
-      if (response.ok) {
-        toast.success("Application submitted successfully!");
-        setTimeout(() => {
-          setLoanType("Govt. Employee");
-          setSalaryType("");
-          setDoctorType("Job Holder");
-          setLoanRequirementNumber("");
-          setChambersJobHolder([]);
-          setChambersOnlyChamber([]);
-          setChambersJobHolderAndChamber([]);
-          setFormData(initialFormData);
-        }, 500);
-      } else {
-        const errorData = await response.json();
-        toast.error(
-          `Error: ${errorData.error || "Failed to submit application"}`
-        );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit application");
       }
+
+      toast.success("Application submitted successfully!");
+      resetForm();
     } catch (error) {
       console.error("Submission error:", error);
-      toast.error("Failed to submit application. Please try again.");
+      toast.error(error.message || "An error occurred during submission");
     }
   };
-
   const isDoctor = loanType === "Doctor";
   const isOnlyChamber = isDoctor && doctorType === "Only Chamber";
   const isJobHolderAndChamber =

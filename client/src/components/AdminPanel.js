@@ -22,25 +22,54 @@ const AdminPanel = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
         const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/admin");
+          return;
+        }
+
         const response = await axios.get(
           "https://loanapi.arbeittechnology.com/api/applications",
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 10000,
           }
         );
-        setApplications(response.data);
-        setLoading(false);
-      } catch (err) {
-        if (err.response && err.response.status === 401) {
-          localStorage.removeItem("token");
-          navigate("/admin");
+
+        if (response.data && Array.isArray(response.data)) {
+          setApplications(response.data);
         } else {
-          setError("Failed to fetch applications");
-          setLoading(false);
+          throw new Error("Invalid response format");
         }
+      } catch (err) {
+        console.error("Fetch error:", err);
+
+        if (err.response) {
+          // Server responded with error status
+          if (err.response.status === 401) {
+            localStorage.removeItem("token");
+            navigate("/admin");
+            return;
+          }
+          setError(err.response.data?.error || "Server error occurred");
+        } else if (err.request) {
+          // Request was made but no response
+          setError("Network error - please check your connection");
+        } else {
+          // Other errors
+          setError(err.message || "Failed to fetch applications");
+        }
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchApplications();
   }, [navigate]);
   useEffect(() => {
@@ -103,32 +132,30 @@ const AdminPanel = () => {
   };
 
   const renderChambers = (chambersArray) => {
-    if (!chambersArray?.length)
-      return <p className="adminPanel-noData">No Chamber Info</p>;
+    if (!chambersArray || chambersArray.length === 0) {
+      return (
+        <p className="adminPanel-noData">No chamber information available</p>
+      );
+    }
 
     return chambersArray.map((chamber, idx) => (
       <div key={idx} className="adminPanel-chamberCard">
         <h6>Chamber {idx + 1}</h6>
-        <div className="adminPanel-detailRow">
-          <span className="adminPanel-detailLabel">Place Name:</span>
-          <span className="adminPanel-detailValue">
-            {highlightSearchTerm(chamber.chamberPlaceName || "-", searchTerm)}
-          </span>
-        </div>
-        <div className="adminPanel-detailRow">
-          <span className="adminPanel-detailLabel">Address:</span>
-          <span className="adminPanel-detailValue">
-            {highlightSearchTerm(chamber.chamberAddress || "-", searchTerm)}
-          </span>
-        </div>
-        <div className="adminPanel-detailRow">
-          <span className="adminPanel-detailLabel">Monthly Income:</span>
-          <span className="adminPanel-detailValue">
-            {chamber.monthlyIncome != null
-              ? `৳${parseFloat(chamber.monthlyIncome).toLocaleString()}`
-              : "-"}
-          </span>
-        </div>
+        <DetailRow
+          label="Place Name:"
+          value={chamber.chamberPlaceName}
+          searchTerm={searchTerm}
+        />
+        <DetailRow
+          label="Address:"
+          value={chamber.chamberAddress}
+          searchTerm={searchTerm}
+        />
+        <DetailRow
+          label="Monthly Income:"
+          value={chamber.monthlyIncome}
+          isCurrency
+        />
       </div>
     ));
   };
@@ -161,7 +188,7 @@ const AdminPanel = () => {
     };
 
     const doctorChambers =
-      app.chambers?.[doctorTypeKeyMap[app.doctor_type]] || null;
+      app.chambers?.[doctorTypeKeyMap[app.doctorType]] || null;
 
     return (
       <Accordion className="adminPanel-detailsAccordion" defaultActiveKey="0">
@@ -201,52 +228,75 @@ const AdminPanel = () => {
                   searchTerm={searchTerm}
                 />
               </div>
-
               <div className="adminPanel-detailGroup">
                 <h5 className="adminPanel-detailGroupTitle">
                   Financial Information
                 </h5>
-                <DetailRow
-                  label="Salary Type:"
-                  value={app.salary_type}
-                  searchTerm={searchTerm}
-                />
-                {app.salary_type === "Bank Amount" && (
-                  <DetailRow
-                    label="Bank Amount:"
-                    value={app.bankAmount}
-                    isCurrency
-                  />
-                )}
-                {app.salary_type === "Cash Amount" && (
-                  <DetailRow
-                    label="Cash Amount:"
-                    value={app.cashAmount}
-                    isCurrency
-                  />
-                )}
-                {app.salary_type === "Bank & Cash Amount" && (
+                {app.salaryType ? (
                   <>
                     <DetailRow
-                      label="Bank Amount:"
-                      value={app.bankAmount}
-                      isCurrency
+                      label="Salary Type:"
+                      value={app.salaryType}
+                      searchTerm={searchTerm}
                     />
-                    <DetailRow
-                      label="Cash Amount:"
-                      value={app.cashAmount}
-                      isCurrency
-                    />
-                    <DetailRow
-                      label="Bank & Cash Amount:"
-                      value={app.bankAndCashAmount}
-                      isCurrency
-                    />
+                    {app.salaryType === "Bank Amount" && (
+                      <DetailRow
+                        label="Amount:"
+                        value={app.bankAmount}
+                        isCurrency
+                      />
+                    )}
+                    {app.salaryType === "Cash Amount" && (
+                      <DetailRow
+                        label="Amount:"
+                        value={app.cashAmount}
+                        isCurrency
+                      />
+                    )}
+                    {app.salaryType === "Bank & Cash Amount" && (
+                      <DetailRow
+                        label="Amount:"
+                        value={app.bankAndCashAmount}
+                        isCurrency
+                      />
+                    )}
+                  </>
+                ) : (
+                  // For Govt Employees or when salaryType is not set
+                  <>
+                    {app.bankAmount > 0 && (
+                      <DetailRow
+                        label="Amount:"
+                        value={app.bankAmount}
+                        isCurrency
+                      />
+                    )}
+                    {app.cashAmount > 0 && (
+                      <DetailRow
+                        label="Amount:"
+                        value={app.cashAmount}
+                        isCurrency
+                      />
+                    )}
+                    {app.bankAndCashAmount > 0 && (
+                      <DetailRow
+                        label="Amount:"
+                        value={app.bankAndCashAmount}
+                        isCurrency
+                      />
+                    )}
+                    {!app.salaryType &&
+                      !app.bankAmount &&
+                      !app.cashAmount &&
+                      !app.bankAndCashAmount && (
+                        <p className="adminPanel-noData">
+                          No financial information available
+                        </p>
+                      )}
                   </>
                 )}
               </div>
-
-              {app.loan_type === "Doctor" && (
+              {app.loanType === "Doctor" && (
                 <div className="adminPanel-detailGroup">
                   <h5 className="adminPanel-detailGroupTitle">
                     Doctor Information
@@ -258,11 +308,11 @@ const AdminPanel = () => {
                   />
                   <DetailRow
                     label="Doctor Type:"
-                    value={app.doctor_type}
+                    value={app.doctorType}
                     searchTerm={searchTerm}
                   />
 
-                  {app.doctor_type !== "Only Chamber" && (
+                  {app.doctorType !== "Only Chamber" && (
                     <>
                       <DetailRow
                         label="Hospital Name:"
@@ -284,24 +334,23 @@ const AdminPanel = () => {
                     </>
                   )}
 
-                  {(app.doctor_type === "Job Holder" ||
-                    app.doctor_type === "Only Chamber" ||
-                    app.doctor_type === "Job Holder & Chamber") && (
+                  {(app.doctorType === "Job Holder" ||
+                    app.doctorType === "Only Chamber" ||
+                    app.doctorType === "Job Holder & Chamber") && (
                     <div className="adminPanel-chamberSection">
                       <h6 className="adminPanel-chamberSectionTitle">
                         Chamber Information
                       </h6>
-                      {doctorChambers && doctorChambers.length > 0 ? (
-                        renderChambers(doctorChambers)
-                      ) : (
-                        <p className="adminPanel-noData">No Chamber Info</p>
-                      )}
+                      {app.chambers &&
+                        app.chambers[doctorTypeKeyMap[app.doctorType]] &&
+                        renderChambers(
+                          app.chambers[doctorTypeKeyMap[app.doctorType]]
+                        )}
                     </div>
                   )}
                 </div>
               )}
-
-              {app.loan_type !== "Doctor" && (
+              {app.loanType !== "Doctor" && (
                 <div className="adminPanel-detailGroup">
                   <h5 className="adminPanel-detailGroupTitle">
                     Employment Information
@@ -328,7 +377,7 @@ const AdminPanel = () => {
                   />
                   <DetailRow label="Salary:" value={app.salary} isCurrency />
 
-                  {app.loan_type === "Teacher" && (
+                  {app.loanType === "Teacher" && (
                     <DetailRow
                       label="Institute Address:"
                       value={app.instituteAddress}
@@ -336,8 +385,8 @@ const AdminPanel = () => {
                     />
                   )}
 
-                  {(app.loan_type === "Private Job Holder" ||
-                    app.loan_type === "Garments Job Holder") && (
+                  {(app.loanType === "Private Job Holder" ||
+                    app.loanType === "Garments Job Holder") && (
                     <DetailRow
                       label="Company Address:"
                       value={app.companyAddress}
@@ -357,7 +406,7 @@ const AdminPanel = () => {
     const matchesSearch =
       app.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.contactNo?.includes(searchTerm);
-    const matchesFilter = filterType === "all" || app.loan_type === filterType;
+    const matchesFilter = filterType === "all" || app.loanType === filterType;
 
     if (selectedDate) {
       const appDate = new Date(app.createdAt);
@@ -567,7 +616,7 @@ const AdminPanel = () => {
                     <td>
                       {highlightSearchTerm(app.contactNo || "-", searchTerm)}
                     </td>
-                    <td>{getLoanTypeBadge(app.loan_type)}</td>
+                    <td>{getLoanTypeBadge(app.loanType)}</td>
                     <td className="adminPanel-amountCell">
                       ৳
                       {app.requiredAmount != null
