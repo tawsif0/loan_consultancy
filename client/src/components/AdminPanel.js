@@ -326,7 +326,7 @@ const AdminPanel = () => {
                       />
                       {app.monthlySalaryFromHospital > 0 && (
                         <DetailRow
-                          label="Monthly Salary From Hospital:"
+                          label="Salary of Hospital:"
                           value={app.monthlySalaryFromHospital}
                           isCurrency
                         />
