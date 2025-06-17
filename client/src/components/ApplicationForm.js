@@ -1060,7 +1060,7 @@ const ApplicationForm = () => {
                   {/* Monthly Salary From Hospital dropdown */}
                   <Form.Group className="mb-3" controlId="salaryDropdown">
                     <Form.Label className="application-form-label">
-                      Monthly Salary From Hospital
+                      Salary of Hospital
                     </Form.Label>
                     <Form.Select
                       value={salaryType || ""}
