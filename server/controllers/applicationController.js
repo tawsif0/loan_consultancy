@@ -1,94 +1,175 @@
 const { v4: uuidv4 } = require("uuid");
 const pool = require("../config/db");
 const pdfkit = require("pdfkit");
-
 exports.submitApplication = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
-    const application = { ...req.body };
-    const chambers = application.chambers;
-    delete application.chambers;
+    // 1. Extract chambers data FIRST
+    const chambers = req.body.chambers;
 
-    // Generate UUID for the application id
-    application.id = uuidv4();
+    // 2. Create application object WITHOUT spreading entire req.body
+    const application = {
+      id: uuidv4(),
+      fullName: req.body.fullName,
+      contactNo: req.body.contactNo,
+      requiredAmount: req.body.requiredAmount
+        ? parseFloat(req.body.requiredAmount)
+        : null,
+      presentAddress: req.body.presentAddress,
+      existingLoan: req.body.existingLoan || "No",
+      paymentRegularity: req.body.paymentRegularity || null,
+      comments: req.body.comments || null,
+      department: req.body.department || null,
+      designation: req.body.designation || null,
+      organizationName: req.body.organizationName || null,
+      organizationAddress: req.body.organizationAddress || null,
+      jobGrade: req.body.jobGrade || null,
+      instituteName: req.body.instituteName || null,
+      instituteAddress: req.body.instituteAddress || null,
+      companyName: req.body.companyName || null,
+      companyAddress: req.body.companyAddress || null,
+      hospitalName: req.body.hospitalName || null,
+      hospitalAddress: req.body.hospitalAddress || null,
+      bmdcAge: req.body.bmdcAge || null,
+      monthlySalaryFromHospital: req.body.monthlySalaryFromHospital
+        ? parseFloat(req.body.monthlySalaryFromHospital)
+        : null,
+      bankAmount: req.body.bankAmount ? parseFloat(req.body.bankAmount) : null,
+      cashAmount: req.body.cashAmount ? parseFloat(req.body.cashAmount) : null,
+      bankAndCashAmount: req.body.bankAndCashAmount
+        ? parseFloat(req.body.bankAndCashAmount)
+        : null,
+      doctorType: req.body.doctorType || null,
+      loanRequirementTime: req.body.loanRequirementTime || null,
+      loanType: req.body.loanType,
+      salaryType: req.body.salaryType || null,
+      createdAt: new Date(),
+      updated_at: new Date(),
+    };
 
-    // Insert main application data using UUID as id
-    await pool.query("INSERT INTO loan_applications SET ?", application);
+    // Start transaction
+    await connection.beginTransaction();
 
-    const applicationId = application.id;
+    // 3. Insert main application (no chambers field)
+    await connection.query("INSERT INTO loan_applications SET ?", application);
 
-    if (chambers) {
-      const chamberTypes = ["jobHolder", "onlyChamber", "jobHolderAndChamber"];
-
-      for (const type of chamberTypes) {
-        if (Array.isArray(chambers[type])) {
-          for (const chamber of chambers[type]) {
-            const chamberId = uuidv4(); // generate UUID for chamber_id
-            await pool.query(
-              `INSERT INTO chambers (chamber_id, application_id, chamber_place_name, chamber_address, monthly_income)
-               VALUES (?, ?, ?, ?, ?)`,
-              [
-                chamberId,
-                applicationId,
-                chamber.chamberPlaceName || null,
-                chamber.chamberAddress || null,
-                chamber.monthlyIncome || null,
-              ]
-            );
-          }
-        }
+    // 4. Process chambers separately (only for Doctors)
+    if (
+      application.loanType === "Doctor" &&
+      chambers &&
+      Array.isArray(chambers)
+    ) {
+      for (const chamber of chambers) {
+        await connection.query(
+          `INSERT INTO chambers 
+           (chamber_id, application_id, chamberPlaceName, chamberAddress, monthlyIncome, chamber_type)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            uuidv4(),
+            application.id,
+            chamber.chamberPlaceName || null,
+            chamber.chamberAddress || null,
+            chamber.monthlyIncome ? parseFloat(chamber.monthlyIncome) : null,
+            application.doctorType,
+          ]
+        );
       }
     }
 
-    res.status(201).json({ id: applicationId, ...application });
-  } catch (err) {
-    console.error("Error submitting application:", err);
-    res.status(500).json({ error: err.message });
+    // Commit transaction
+    await connection.commit();
+
+    res.status(201).json({
+      success: true,
+      applicationId: application.id,
+      message: "Application submitted successfully",
+    });
+  } catch (error) {
+    // Rollback on error
+    await connection.rollback();
+    console.error("Submission error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  } finally {
+    connection.release();
   }
 };
-
 exports.getAllApplications = async (req, res) => {
   try {
     const [applications] = await pool.query(
       "SELECT * FROM loan_applications ORDER BY createdAt DESC"
     );
 
-    // Fetch chambers for all applications in parallel and group by type keys
     const applicationsWithChambers = await Promise.all(
       applications.map(async (app) => {
-        const [chambers] = await pool.query(
-          `SELECT chamber_place_name AS chamberPlaceName, chamber_address AS chamberAddress, monthly_income AS monthlyIncome
-           FROM chambers WHERE application_id = ?`,
-          [app.id]
-        );
+        try {
+          const [chambers] = await pool.query(
+            `SELECT 
+              chamberPlaceName, 
+              chamberAddress, 
+              monthlyIncome,
+              chamber_type
+             FROM chambers 
+             WHERE application_id = ?`,
+            [app.id]
+          );
 
-        // Initialize grouped chambers object
-        const groupedChambers = {
-          jobHolder: [],
-          onlyChamber: [],
-          jobHolderAndChamber: [],
-        };
+          console.log(`Chambers for app ${app.id}:`, chambers); // Debug log
 
-        if (app.doctor_type === "Job Holder") {
-          groupedChambers.jobHolder = chambers;
-        } else if (app.doctor_type === "Only Chamber") {
-          groupedChambers.onlyChamber = chambers;
-        } else if (app.doctor_type === "Job Holder & Chamber") {
-          groupedChambers.jobHolderAndChamber = chambers;
+          // Initialize with empty arrays
+          const groupedChambers = {
+            jobHolder: [],
+            onlyChamber: [],
+            jobHolderAndChamber: [],
+          };
+
+          chambers.forEach((chamber) => {
+            const chamberData = {
+              chamberPlaceName: chamber.chamberPlaceName || "Not provided",
+              chamberAddress: chamber.chamberAddress || "Not provided",
+              monthlyIncome: chamber.monthlyIncome || 0,
+            };
+
+            if (chamber.chamber_type === "Job Holder") {
+              groupedChambers.jobHolder.push(chamberData);
+            } else if (chamber.chamber_type === "Only Chamber") {
+              groupedChambers.onlyChamber.push(chamberData);
+            } else if (chamber.chamber_type === "Job Holder & Chamber") {
+              groupedChambers.jobHolderAndChamber.push(chamberData);
+            }
+          });
+
+          return {
+            ...app,
+            chambers: groupedChambers,
+          };
+        } catch (error) {
+          console.error(`Error processing app ${app.id}:`, error);
+          return {
+            ...app,
+            chambers: {
+              jobHolder: [],
+              onlyChamber: [],
+              jobHolderAndChamber: [],
+            },
+          };
         }
-
-        return {
-          ...app,
-          chambers: groupedChambers,
-        };
       })
     );
 
     res.json(applicationsWithChambers);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error in getAllApplications:", err);
+    res.status(500).json({
+      error: "Failed to fetch applications",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 };
-
 exports.getApplicationById = async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -132,9 +213,9 @@ exports.downloadApplicationsPDF = async (req, res) => {
     const applicationsWithChambers = await Promise.all(
       applications.map(async (app) => {
         const [chambers] = await pool.query(
-          `SELECT chamber_place_name AS chamberPlaceName,
-                  chamber_address AS chamberAddress,
-                  monthly_income AS monthlyIncome
+          `SELECT chamberPlaceName AS chamberPlaceName,
+                  chamberAddress AS chamberAddress,
+                  monthlyIncome AS monthlyIncome
            FROM chambers WHERE application_id = ?`,
           [app.id]
         );
@@ -157,18 +238,17 @@ exports.downloadApplicationsPDF = async (req, res) => {
     const formatDateForDisplay = (dateString) => {
       if (!dateString) return "-";
       const date = new Date(dateString);
-      // Format as local date without timezone conversion
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-        timeZone: "Asia/Dhaka", // Adjust this to your local timezone
+        timeZone: "Asia/Dhaka",
       });
     };
 
     // Generate the PDF content for the filtered applications only
     applicationsWithChambers.forEach((app, index) => {
-      doc.fontSize(14).text(`${index + 1}. ${app.fullName} (${app.loan_type})`);
+      doc.fontSize(14).text(`${index + 1}. ${app.fullName} (${app.loanType})`);
       doc.fontSize(12).text(`Contact: ${app.contactNo || "-"}`);
       doc.text(
         `Required Amount: Tk ${parseFloat(
@@ -188,37 +268,73 @@ exports.downloadApplicationsPDF = async (req, res) => {
         doc.text(`Payment Regularity: ${app.paymentRegularity}`);
       if (app.comments) doc.text(`Comments: ${app.comments}`);
 
-      doc.moveDown().font("Helvetica-Bold").text("Financial Information:");
-      doc.font("Helvetica");
-      if (app.salary_type) doc.text(`Salary Type: ${app.salary_type}`);
-      if (app.salary_type === "Bank Amount")
-        doc.text(
-          `Bank Amount: Tk ${parseFloat(app.bankAmount || 0).toLocaleString()}`
-        );
-      else if (app.salary_type === "Cash Amount")
-        doc.text(
-          `Cash Amount: Tk ${parseFloat(app.cashAmount || 0).toLocaleString()}`
-        );
-      else if (app.salary_type === "Bank & Cash Amount") {
-        doc.text(
-          `Bank Amount: Tk ${parseFloat(app.bankAmount || 0).toLocaleString()}`
-        );
-        doc.text(
-          `Cash Amount: Tk ${parseFloat(app.cashAmount || 0).toLocaleString()}`
-        );
-        doc.text(
-          `Bank & Cash Amount: Tk ${parseFloat(
-            app.bankAndCashAmount || 0
-          ).toLocaleString()}`
-        );
+      // Improved Financial Information Section
+      const hasValidFinancialData =
+        (app.salaryType &&
+          ((app.salaryType === "Bank Amount" && app.bankAmount > 0) ||
+            (app.salaryType === "Cash Amount" && app.cashAmount > 0) ||
+            (app.salaryType === "Bank & Cash Amount" &&
+              app.bankAndCashAmount > 0))) ||
+        (!app.salaryType &&
+          (app.bankAmount > 0 ||
+            app.cashAmount > 0 ||
+            app.bankAndCashAmount > 0));
+
+      if (hasValidFinancialData) {
+        doc.moveDown().font("Helvetica-Bold").text("Financial Information:");
+        doc.font("Helvetica");
+
+        let amountToShow = 0;
+        let salaryTypeToShow = app.salaryType || "Amount";
+        let showAmount = false;
+
+        if (app.salaryType) {
+          // For applications with salary type
+          if (
+            app.salaryType === "Bank & Cash Amount" &&
+            app.bankAndCashAmount > 0
+          ) {
+            amountToShow = app.bankAndCashAmount;
+            showAmount = true;
+          } else if (app.salaryType === "Bank Amount" && app.bankAmount > 0) {
+            amountToShow = app.bankAmount;
+            showAmount = true;
+          } else if (app.salaryType === "Cash Amount" && app.cashAmount > 0) {
+            amountToShow = app.cashAmount;
+            showAmount = true;
+          }
+        } else {
+          // For Govt Employees and others without salary type
+          if (app.bankAmount > 0) {
+            amountToShow = app.bankAmount;
+            salaryTypeToShow = "Bank Amount";
+            showAmount = true;
+          } else if (app.cashAmount > 0) {
+            amountToShow = app.cashAmount;
+            salaryTypeToShow = "Cash Amount";
+            showAmount = true;
+          } else if (app.bankAndCashAmount > 0) {
+            amountToShow = app.bankAndCashAmount;
+            salaryTypeToShow = "Bank & Cash Amount";
+            showAmount = true;
+          }
+        }
+
+        if (showAmount) {
+          doc.text(
+            `${salaryTypeToShow}: Tk ${parseFloat(
+              amountToShow
+            ).toLocaleString()}`
+          );
+        }
       }
 
-      if (app.loan_type === "Doctor") {
+      if (app.loanType === "Doctor") {
         doc.moveDown().font("Helvetica-Bold").text("Doctor Information:");
         doc.font("Helvetica");
         if (app.bmdcAge) doc.text(`BMDC Age: ${app.bmdcAge}`);
-        if (app.doctor_type) doc.text(`Doctor Type: ${app.doctor_type}`);
-        if (app.doctor_type !== "Only Chamber") {
+        if (app.doctorType) doc.text(`Doctor Type: ${app.doctorType}`);
+        if (app.doctorType !== "Only Chamber") {
           if (app.hospitalName) doc.text(`Hospital Name: ${app.hospitalName}`);
           if (app.hospitalAddress)
             doc.text(`Hospital Address: ${app.hospitalAddress}`);
@@ -247,7 +363,7 @@ exports.downloadApplicationsPDF = async (req, res) => {
         }
       }
 
-      if (app.loan_type !== "Doctor") {
+      if (app.loanType !== "Doctor") {
         doc.moveDown().font("Helvetica-Bold").text("Employment Information:");
         doc.font("Helvetica");
         if (app.department) doc.text(`Department: ${app.department}`);
@@ -255,20 +371,21 @@ exports.downloadApplicationsPDF = async (req, res) => {
         if (app.organizationAddress)
           doc.text(`Organization Address: ${app.organizationAddress}`);
         if (app.jobGrade) doc.text(`Job Grade: ${app.jobGrade}`);
-        if (app.salary)
-          doc.text(
-            `Salary: Tk ${parseFloat(app.salary || 0).toLocaleString()}`
-          );
-
-        if (app.loan_type === "Teacher" && app.instituteAddress)
-          doc.text(`Institute Address: ${app.instituteAddress}`);
 
         if (
-          (app.loan_type === "Private Job Holder" ||
-            app.loan_type === "Garments Job Holder") &&
-          app.companyAddress
-        )
-          doc.text(`Company Address: ${app.companyAddress}`);
+          (app.loanType === "Teacher" && app.instituteAddress) ||
+          ((app.loanType === "Private Job Holder" ||
+            app.loanType === "Garments Job Holder") &&
+            app.companyAddress)
+        ) {
+          doc.text(
+            `Address: ${
+              app.loanType === "Teacher"
+                ? app.instituteAddress
+                : app.companyAddress
+            }`
+          );
+        }
       }
 
       if (index < applicationsWithChambers.length - 1) {
