@@ -289,3 +289,18 @@
     width: 100%;
   }
 }
+/* Add to your ApplicationForm.css */
+.highlight-section {
+  animation: highlight 2s ease-in-out;
+  border-left: 4px solid #2c7be5;
+  padding-left: 10px;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: rgba(44, 123, 229, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}

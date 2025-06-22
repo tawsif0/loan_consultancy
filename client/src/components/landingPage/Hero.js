@@ -45,14 +45,14 @@ const Hero = ({ scrollToSection }) => {
                 className="hero-btn hero-btn-primary"
                 onClick={() => scrollToSection("services")}
               >
-                <span>Explore Services</span>
+                <span>Our Services</span>
                 <i className="fas fa-arrow-right"></i>
               </button>
               <button
                 className="hero-btn hero-btn-secondary"
                 onClick={() => navigate("/application")}
               >
-                <span>Quick Application</span>
+                <span>Book for Loan Consultation</span>
                 <i className="fas fa-bolt"></i>
               </button>
             </div>
@@ -60,15 +60,15 @@ const Hero = ({ scrollToSection }) => {
             <div className="hero-features">
               <div className="hero-feature">
                 <i className="fas fa-check-circle"></i>
-                <span>Instant Approval</span>
+                <span>Free Consultation</span>
               </div>
               <div className="hero-feature">
                 <i className="fas fa-check-circle"></i>
-                <span>Lowest Rates</span>
+                <span>Colaboration with Banks</span>
               </div>
               <div className="hero-feature">
                 <i className="fas fa-check-circle"></i>
-                <span>Flexible Terms</span>
+                <span>No Transactions with Us</span>
               </div>
             </div>
           </div>

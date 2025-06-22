@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
@@ -6,7 +6,7 @@ import Col from "react-bootstrap/Col";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./ApplicationForm.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Initial form data structure
 const initialFormData = {
@@ -36,7 +36,11 @@ const initialFormData = {
 };
 
 const ApplicationForm = () => {
-  const [loanType, setLoanType] = useState("Govt. Employee");
+  const location = useLocation(); // This is correct for accessing state
+  const loanTypeRef = useRef(null); // Create a ref for the loan type section
+  const [loanType, setLoanType] = useState(
+    location.state?.loanType || "Govt. Employee"
+  );
   const [salaryType, setSalaryType] = useState("");
   const [doctorType, setDoctorType] = useState("Job Holder");
   const [loanRequirementNumber, setLoanRequirementNumber] = useState("");
@@ -47,6 +51,24 @@ const ApplicationForm = () => {
     useState([]);
   const [formData, setFormData] = useState(initialFormData);
   const navigate = useNavigate();
+  //type selection of loan
+  useEffect(() => {
+    if (location.state?.scrollTo === "loanTypeSection" && loanTypeRef.current) {
+      const element = loanTypeRef.current;
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      // Add highlight class
+      element.classList.add("highlight-section");
+
+      // Remove after animation
+      setTimeout(() => {
+        element.classList.remove("highlight-section");
+      }, 2000);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (loanType === "Doctor") {
@@ -327,7 +349,7 @@ const ApplicationForm = () => {
 
       // 3. Send request
       const response = await fetch(
-        "https://loanapi.arbeittechnology.com/api/applications",
+        "https://loanapi.arbeitonline.top/api/applications",
         {
           method: "POST",
           headers: {
@@ -404,7 +426,7 @@ const ApplicationForm = () => {
               </Form.Group>
             </Row>
 
-            <Form.Group className="mb-4" controlId="loanType">
+            <Form.Group ref={loanTypeRef} className="mb-4" controlId="loanType">
               <Form.Label className="application-form-label">
                 Profession Type
               </Form.Label>

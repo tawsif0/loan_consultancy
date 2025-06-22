@@ -16,7 +16,7 @@ const AdminPanel = () => {
   const [filterType, setFilterType] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
   const [dateFilteredCount, setDateFilteredCount] = useState(0);
-
+  const [isDownloading, setIsDownloading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const AdminPanel = () => {
         }
 
         const response = await axios.get(
-          "https://loanapi.arbeittechnology.com/api/applications",
+          "https://loanapi.arbeitonline.top/api/applications",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -403,30 +403,18 @@ const AdminPanel = () => {
   };
 
   const filteredApplications = applications.filter((app) => {
-    const matchesSearch =
-      app.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.contactNo?.includes(searchTerm);
+    const matchesSearch = searchTerm
+      ? app.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.contactNo?.includes(searchTerm)
+      : true;
+
     const matchesFilter = filterType === "all" || app.loanType === filterType;
 
-    if (selectedDate) {
-      const appDate = new Date(app.createdAt);
-      const appUTCDate = new Date(
-        Date.UTC(appDate.getFullYear(), appDate.getMonth(), appDate.getDate())
-      );
+    const matchesDate = selectedDate
+      ? new Date(app.createdAt).toISOString().split("T")[0] === selectedDate
+      : true;
 
-      const filterDate = new Date(selectedDate);
-      const filterUTCDate = new Date(
-        Date.UTC(
-          filterDate.getFullYear(),
-          filterDate.getMonth(),
-          filterDate.getDate()
-        )
-      );
-
-      const matchesDate = appUTCDate.getTime() === filterUTCDate.getTime();
-      return matchesSearch && matchesFilter && matchesDate;
-    }
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesDate;
   });
 
   if (loading) {
@@ -441,52 +429,72 @@ const AdminPanel = () => {
   if (error) {
     return <div className="adminPanel-errorMessage">{error}</div>;
   }
-
   const downloadPDF = async () => {
-    if (!selectedDate) {
-      alert("Please select a date first");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/admin");
       return;
     }
-    const token = localStorage.getItem("token");
+
+    setIsDownloading(true);
+
     try {
+      const params = new URLSearchParams();
+
+      // Format date as YYYY-MM-DD if selected
+      if (selectedDate) params.append("date", selectedDate);
+      if (searchTerm) params.append("searchTerm", searchTerm);
+      if (filterType && filterType !== "all")
+        params.append("filterType", filterType);
+
       const response = await fetch(
-        `https://loanapi.arbeittechnology.com/api/applications/download?date=${selectedDate}`,
+        `https://loanapi.arbeitonline.top/api/applications/download?${params.toString()}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       if (!response.ok) {
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("text/html")) {
-          const text = await response.text();
-          throw new Error(
-            `Server returned HTML error page (status ${response.status})`
-          );
-        }
-
-        try {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.error || `Server error (${response.status})`
-          );
-        } catch (e) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
+        const errorText = await response.text();
+        throw new Error(errorText || "Download failed");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
+
+      // Generate dynamic filename
+      let filename = "loan_applications";
+      if (selectedDate) filename += `_${selectedDate}`;
+      if (filterType && filterType !== "all")
+        filename += `_${filterType.replace(/\s+/g, "_")}`;
+      if (searchTerm) filename += `_${searchTerm.substring(0, 10)}`;
+      if (
+        !selectedDate &&
+        !searchTerm &&
+        (!filterType || filterType === "all")
+      ) {
+        filename += "_ALL_DATA";
+      }
+      filename += ".pdf";
+
       a.href = url;
-      a.download = `loan_applications_${selectedDate}.pdf`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
     } catch (err) {
-      alert("Error downloading PDF: " + err.message);
       console.error("Download error:", err);
+      alert(`Download failed: ${err.message}`);
+    } finally {
+      setIsDownloading(false);
     }
   };
   return (
@@ -547,32 +555,38 @@ const AdminPanel = () => {
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => {
-              // The date picker already gives us the correct date in YYYY-MM-DD format
-              setSelectedDate(e.target.value);
-            }}
+            onChange={(e) => setSelectedDate(e.target.value)}
             className="adminPanel-dateInput"
             aria-label="Select date for application filter"
           />
           <Button
             variant="success"
             onClick={downloadPDF}
-            disabled={!selectedDate}
+            disabled={isDownloading || filteredApplications.length === 0}
             className="adminPanel-downloadBtn"
+            title={
+              `Download ${filteredApplications.length} records` +
+              (selectedDate ? ` from ${selectedDate}` : "") +
+              (filterType && filterType !== "all"
+                ? ` of type ${filterType}`
+                : "") +
+              (searchTerm ? ` matching "${searchTerm}"` : "")
+            }
           >
-            <i className="bi bi-download"></i> Download PDF
+            {isDownloading ? (
+              <>
+                <span className="spinner-border spinner-border-sm"></span>{" "}
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-download"></i>{" "}
+                {filteredApplications.length > 0
+                  ? `Download ${filteredApplications.length} Records`
+                  : "Download"}
+              </>
+            )}
           </Button>
-
-          {selectedDate && (
-            <div className="adminPanel-dateStat">
-              <span className="adminPanel-dateStatValue">
-                {dateFilteredCount}
-              </span>
-              <span className="adminPanel-dateStatLabel">
-                applications on {formatDate(selectedDate)}
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="adminPanel-statsSummary">

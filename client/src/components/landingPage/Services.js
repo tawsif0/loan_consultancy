@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Services.css";
 
 // Importing images correctly from relative path
@@ -10,7 +11,7 @@ import teacherLoanImg from "../../assets/services/teacher-loan.jpg";
 
 const Services = () => {
   const [activeService, setActiveService] = useState(0);
-
+  const navigate = useNavigate(); // Add this line
   const services = [
     {
       title: "Government Employees",
@@ -76,7 +77,22 @@ const Services = () => {
       icon: "fa-chalkboard-teacher",
     },
   ];
+  const handleApply = (serviceTitle) => {
+    const loanTypeMap = {
+      "Government Employees": "Govt. Employee",
+      "Private Job Holders": "Private Job Holder",
+      Doctors: "Doctor",
+      "Garment Sector Workers": "Garments Job Holder",
+      Teachers: "Teacher",
+    };
 
+    navigate("/application", {
+      state: {
+        loanType: loanTypeMap[serviceTitle],
+        scrollTo: "loanTypeSection", // Add this flag
+      },
+    });
+  };
   return (
     <section className="services-section section-padding" id="services">
       <div className="container">
@@ -127,6 +143,12 @@ const Services = () => {
                 </div>
               ))}
             </div>
+            <button
+              className="apply-button"
+              onClick={() => handleApply(services[activeService].title)}
+            >
+              Apply Now
+            </button>
           </div>
 
           <div className="service-image">

@@ -24,15 +24,6 @@ const About = () => {
           </div>
 
           <div className="about-text">
-            {/* <h3>Who We Are</h3>
-            <p>
-              Loan Consultancy Firm is a specialized service provider offering
-              expert personal loan guidance to salaried individuals across
-              Bangladesh. With over 7 years of industry experience, we simplify
-              the loan journey — from identifying the right bank to completing
-              the necessary application steps.
-            </p> */}
-
             <h3>Our Mission</h3>
             <p>
               To help professionals in Bangladesh gain access to affordable and
