@@ -66,14 +66,14 @@ const Navbar = ({ activeTab, scrollToSection }) => {
               className="btn btn-primary apply-now-mobile"
               onClick={handleApplyNow}
             >
-              Apply For Loan
+              Apply For Loan Consultancy
             </button>
           </div>
 
           {/* Desktop-only Apply Now button */}
           <div className="navbar-contact d-none-mobile">
             <button className="btn btn-primary" onClick={handleApplyNow}>
-              Apply For Loan
+              Apply For Loan Consultancy
             </button>
           </div>
 
