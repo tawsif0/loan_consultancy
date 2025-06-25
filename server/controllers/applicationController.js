@@ -185,222 +185,290 @@ exports.getApplicationById = async (req, res) => {
 };
 
 exports.downloadApplicationsPDF = async (req, res) => {
-  const date = req.query.date;
-  if (!date) {
-    return res.status(400).json({ error: "Date query parameter is required" });
-  }
-
   try {
-    // Convert the input date to UTC date range to account for timezones
-    const startDate = new Date(date);
-    startDate.setUTCHours(0, 0, 0, 0);
-    const endDate = new Date(date);
-    endDate.setUTCHours(23, 59, 59, 999);
+    const { date, searchTerm, filterType } = req.query;
 
-    // Filter applications by the selected date range in UTC
-    const [applications] = await pool.query(
-      `SELECT * FROM loan_applications 
-       WHERE createdAt BETWEEN ? AND ?
-       ORDER BY createdAt DESC`,
-      [startDate.toISOString(), endDate.toISOString()]
-    );
+    // Base query with optional filters
+    let query = `
+      SELECT la.*, 
+        GROUP_CONCAT(c.chamberPlaceName SEPARATOR '|') AS chamberPlaceNames,
+        GROUP_CONCAT(c.chamberAddress SEPARATOR '|') AS chamberAddresses,
+        GROUP_CONCAT(c.monthlyIncome SEPARATOR '|') AS chamberIncomes
+      FROM loan_applications la
+      LEFT JOIN chambers c ON la.id = c.application_id
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (date) {
+      const startDate = new Date(date);
+      startDate.setUTCHours(0, 0, 0, 0);
+      const endDate = new Date(date);
+      endDate.setUTCHours(23, 59, 59, 999);
+      query += ` AND la.createdAt BETWEEN ? AND ?`;
+      params.push(startDate.toISOString(), endDate.toISOString());
+    }
+
+    // Optional search term filter
+    if (searchTerm) {
+      query += ` AND (la.fullName LIKE ? OR la.contactNo LIKE ?)`;
+      params.push(`%${searchTerm}%`, `%${searchTerm}%`);
+    }
+
+    // Optional loan type filter
+    if (filterType && filterType !== "all") {
+      query += ` AND la.loanType = ?`;
+      params.push(filterType);
+    }
+    // Group by application ID
+    query += ` GROUP BY la.id ORDER BY la.createdAt DESC`;
+
+    const [applications] = await pool.query(query, params);
+
     if (!applications.length) {
       return res
         .status(404)
-        .json({ error: "No applications found for this date" });
+        .json({ error: "No applications found with current filters" });
     }
 
-    const applicationsWithChambers = await Promise.all(
-      applications.map(async (app) => {
-        const [chambers] = await pool.query(
-          `SELECT chamberPlaceName AS chamberPlaceName,
-                  chamberAddress AS chamberAddress,
-                  monthlyIncome AS monthlyIncome
-           FROM chambers WHERE application_id = ?`,
-          [app.id]
-        );
-        return { ...app, chambers };
-      })
-    );
+    // Process chamber data
+    const applicationsWithChambers = applications.map((app) => {
+      const chambers = [];
+      if (app.chamberPlaceNames) {
+        const placeNames = app.chamberPlaceNames.split("|");
+        const addresses = app.chamberAddresses.split("|");
+        const incomes = app.chamberIncomes.split("|");
 
-    const doc = new pdfkit({ margin: 30, size: "A4" });
+        for (let i = 0; i < placeNames.length; i++) {
+          if (placeNames[i] && placeNames[i] !== "null") {
+            chambers.push({
+              chamberPlaceName: placeNames[i],
+              chamberAddress: addresses[i],
+              monthlyIncome: incomes[i],
+            });
+          }
+        }
+      }
+
+      return {
+        ...app,
+        chambers: chambers.length ? chambers : null,
+      };
+    });
+
+    // Create PDF document
+    const doc = new pdfkit({
+      margin: 30,
+      size: "A4",
+      info: {
+        Title: "Loan Applications Report",
+        Author: "Loan Application System",
+        CreationDate: new Date(),
+      },
+    });
+
+    // Set response headers
+    let filename = "loan_applications";
+    if (date) filename += `_${date}`;
+    if (filterType && filterType !== "all")
+      filename += `_${filterType.replace(/\s+/g, "_")}`;
+    if (searchTerm) filename += `_search_${searchTerm.substring(0, 10)}`;
+    if (!date && !searchTerm && (!filterType || filterType === "all"))
+      filename += "_ALL_DATA";
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=loan_applications_${date}.pdf`
+      `attachment; filename=${filename}.pdf`
     );
 
+    // Pipe PDF to response
     doc.pipe(res);
-    doc.fontSize(18).text(`Loan Applications - ${date}`, { align: "center" });
+
+    // Add header with filter information
+    doc.fontSize(18).text("Loan Applications Report", { align: "center" });
+    doc.moveDown(0.5);
+
+    // Filter information
+    doc.fontSize(12);
+    doc.text("Applied Filters:", { align: "left" });
+    if (date) doc.text(`- Date: ${formatDateForDisplay(date)}`);
+    if (searchTerm) doc.text(`- Search Term: "${searchTerm}"`);
+    if (filterType && filterType !== "all")
+      doc.text(`- Loan Type: ${filterType}`);
+    if (!date && !searchTerm && (!filterType || filterType === "all")) {
+      doc.text("- No filters: All applications");
+    }
+    doc.moveDown();
+    doc.text(`Total Applications: ${applicationsWithChambers.length}`, {
+      align: "center",
+    });
     doc.moveDown();
 
-    const formatDateForDisplay = (dateString) => {
-      if (!dateString) return "-";
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        timeZone: "Asia/Dhaka",
-      });
-    };
+    // Add line separator
+    drawLineSeparator(doc);
 
-    // Generate the PDF content for the filtered applications only
+    // Generate content for each application
     applicationsWithChambers.forEach((app, index) => {
-      doc.fontSize(14).text(`${index + 1}. ${app.fullName} (${app.loanType})`);
-      doc.fontSize(12).text(`Contact: ${app.contactNo || "-"}`);
-      doc.text(
-        `Required Amount: Tk ${parseFloat(
-          app.requiredAmount || 0
-        ).toLocaleString()}`
-      );
-      doc.text(`Date: ${formatDateForDisplay(app.createdAt)}`);
+      doc.fontSize(14).text(`${index + 1}. ${app.fullName || "N/A"}`, {
+        underline: true,
+      });
 
-      doc.moveDown().font("Helvetica-Bold").text("Personal Information:");
+      // Basic info section
+      doc.fontSize(12);
+      doc.text(`Loan Type: ${app.loanType || "N/A"}`);
+      doc.text(`Contact: ${app.contactNo || "N/A"}`);
+      doc.text(`Required Amount: ${formatCurrency(app.requiredAmount)}`);
+      doc.text(`Applied On: ${formatDateForDisplay(app.createdAt)}`);
+      doc.moveDown(0.5);
+
+      // Personal Information
+      doc.font("Helvetica-Bold").text("Personal Information:");
       doc.font("Helvetica");
-      if (app.presentAddress)
-        doc.text(`Present Address: ${app.presentAddress}`);
-      if (app.loanRequirementTime)
-        doc.text(`Loan Requirement Time: ${app.loanRequirementTime}`);
-      if (app.existingLoan) doc.text(`Existing Loan: ${app.existingLoan}`);
-      if (app.existingLoan === "Yes" && app.paymentRegularity)
-        doc.text(`Payment Regularity: ${app.paymentRegularity}`);
-      if (app.comments) doc.text(`Comments: ${app.comments}`);
-
-      // Improved Financial Information Section
-      const hasValidFinancialData =
-        (app.salaryType &&
-          ((app.salaryType === "Bank Amount" && app.bankAmount > 0) ||
-            (app.salaryType === "Cash Amount" && app.cashAmount > 0) ||
-            (app.salaryType === "Bank & Cash Amount" &&
-              app.bankAndCashAmount > 0))) ||
-        (!app.salaryType &&
-          (app.bankAmount > 0 ||
-            app.cashAmount > 0 ||
-            app.bankAndCashAmount > 0));
-
-      if (hasValidFinancialData) {
-        doc.moveDown().font("Helvetica-Bold").text("Financial Information:");
-        doc.font("Helvetica");
-
-        let amountToShow = 0;
-        let salaryTypeToShow = app.salaryType || "Amount";
-        let showAmount = false;
-
-        if (app.salaryType) {
-          // For applications with salary type
-          if (
-            app.salaryType === "Bank & Cash Amount" &&
-            app.bankAndCashAmount > 0
-          ) {
-            amountToShow = app.bankAndCashAmount;
-            showAmount = true;
-          } else if (app.salaryType === "Bank Amount" && app.bankAmount > 0) {
-            amountToShow = app.bankAmount;
-            showAmount = true;
-          } else if (app.salaryType === "Cash Amount" && app.cashAmount > 0) {
-            amountToShow = app.cashAmount;
-            showAmount = true;
-          }
-        } else {
-          // For Govt Employees and others without salary type
-          if (app.bankAmount > 0) {
-            amountToShow = app.bankAmount;
-            salaryTypeToShow = "Bank Amount";
-            showAmount = true;
-          } else if (app.cashAmount > 0) {
-            amountToShow = app.cashAmount;
-            salaryTypeToShow = "Cash Amount";
-            showAmount = true;
-          } else if (app.bankAndCashAmount > 0) {
-            amountToShow = app.bankAndCashAmount;
-            salaryTypeToShow = "Bank & Cash Amount";
-            showAmount = true;
-          }
-        }
-
-        if (showAmount) {
-          doc.text(
-            `${salaryTypeToShow}: Tk ${parseFloat(
-              amountToShow
-            ).toLocaleString()}`
-          );
-        }
+      addDetailIfExists(doc, "Present Address", app.presentAddress);
+      addDetailIfExists(doc, "Loan Requirement Time", app.loanRequirementTime);
+      addDetailIfExists(doc, "Existing Loan", app.existingLoan);
+      if (app.existingLoan === "Yes") {
+        addDetailIfExists(doc, "Payment Regularity", app.paymentRegularity);
       }
+      addDetailIfExists(doc, "Comments", app.comments);
+      doc.moveDown(0.5);
 
+      // Financial Information
+      doc.font("Helvetica-Bold").text("Financial Information:");
+      doc.font("Helvetica");
+
+      if (app.salaryType) {
+        doc.text(`Salary Type: ${app.salaryType}`);
+        if (app.salaryType === "Bank Amount" && app.bankAmount > 0) {
+          doc.text(`Amount: ${formatCurrency(app.bankAmount)}`);
+        } else if (app.salaryType === "Cash Amount" && app.cashAmount > 0) {
+          doc.text(`Amount: ${formatCurrency(app.cashAmount)}`);
+        } else if (
+          app.salaryType === "Bank & Cash Amount" &&
+          app.bankAndCashAmount > 0
+        ) {
+          doc.text(`Amount: ${formatCurrency(app.bankAndCashAmount)}`);
+        }
+      } else {
+        // For Govt Employees or when salaryType is not set
+        if (app.bankAmount > 0)
+          doc.text(`Bank Amount: ${formatCurrency(app.bankAmount)}`);
+        if (app.cashAmount > 0)
+          doc.text(`Cash Amount: ${formatCurrency(app.cashAmount)}`);
+        if (app.bankAndCashAmount > 0)
+          doc.text(
+            `Bank & Cash Amount: ${formatCurrency(app.bankAndCashAmount)}`
+          );
+      }
+      doc.moveDown(0.5);
+
+      // Doctor-specific information
       if (app.loanType === "Doctor") {
-        doc.moveDown().font("Helvetica-Bold").text("Doctor Information:");
+        doc.font("Helvetica-Bold").text("Doctor Information:");
         doc.font("Helvetica");
-        if (app.bmdcAge) doc.text(`BMDC Age: ${app.bmdcAge}`);
-        if (app.doctorType) doc.text(`Doctor Type: ${app.doctorType}`);
+        addDetailIfExists(doc, "BMDC Age", app.bmdcAge);
+        addDetailIfExists(doc, "Doctor Type", app.doctorType);
+
         if (app.doctorType !== "Only Chamber") {
-          if (app.hospitalName) doc.text(`Hospital Name: ${app.hospitalName}`);
-          if (app.hospitalAddress)
-            doc.text(`Hospital Address: ${app.hospitalAddress}`);
-          if (app.monthlySalaryFromHospital > 0)
+          addDetailIfExists(doc, "Hospital Name", app.hospitalName);
+          addDetailIfExists(doc, "Hospital Address", app.hospitalAddress);
+          if (app.monthlySalaryFromHospital > 0) {
             doc.text(
-              `Monthly Salary From Hospital: Tk ${parseFloat(
+              `Monthly Salary From Hospital: ${formatCurrency(
                 app.monthlySalaryFromHospital
-              ).toLocaleString()}`
+              )}`
             );
+          }
         }
 
         if (app.chambers && app.chambers.length) {
-          doc.moveDown().text("Chambers:");
+          doc.moveDown(0.5);
+          doc.font("Helvetica-Bold").text("Chamber Information:");
+          doc.font("Helvetica");
           app.chambers.forEach((chamber, i) => {
-            doc.text(`  Chamber ${i + 1}:`);
-            doc.text(`    Place Name: ${chamber.chamberPlaceName || "-"}`);
-            doc.text(`    Address: ${chamber.chamberAddress || "-"}`);
+            doc.text(`Chamber ${i + 1}:`);
+            doc.text(`  Place Name: ${chamber.chamberPlaceName || "N/A"}`);
+            doc.text(`  Address: ${chamber.chamberAddress || "N/A"}`);
             doc.text(
-              `    Monthly Income: Tk ${parseFloat(
-                chamber.monthlyIncome || 0
-              ).toLocaleString()}`
+              `  Monthly Income: ${formatCurrency(chamber.monthlyIncome)}`
             );
           });
-        } else {
-          doc.text("No Chamber Info");
         }
+        doc.moveDown(0.5);
       }
 
+      // Employment Information for non-doctors
       if (app.loanType !== "Doctor") {
-        doc.moveDown().font("Helvetica-Bold").text("Employment Information:");
+        doc.font("Helvetica-Bold").text("Employment Information:");
         doc.font("Helvetica");
-        if (app.department) doc.text(`Department: ${app.department}`);
-        if (app.designation) doc.text(`Designation: ${app.designation}`);
-        if (app.organizationAddress)
-          doc.text(`Organization Address: ${app.organizationAddress}`);
-        if (app.jobGrade) doc.text(`Job Grade: ${app.jobGrade}`);
+        addDetailIfExists(doc, "Department", app.department);
+        addDetailIfExists(doc, "Designation", app.designation);
+        addDetailIfExists(doc, "Organization Address", app.organizationAddress);
+        addDetailIfExists(doc, "Job Grade", app.jobGrade);
 
-        if (
-          (app.loanType === "Teacher" && app.instituteAddress) ||
-          ((app.loanType === "Private Job Holder" ||
+        if (app.loanType === "Teacher" && app.instituteAddress) {
+          doc.text(`Institute Address: ${app.instituteAddress}`);
+        } else if (
+          (app.loanType === "Private Job Holder" ||
             app.loanType === "Garments Job Holder") &&
-            app.companyAddress)
+          app.companyAddress
         ) {
-          doc.text(
-            `Address: ${
-              app.loanType === "Teacher"
-                ? app.instituteAddress
-                : app.companyAddress
-            }`
-          );
+          doc.text(`Company Address: ${app.companyAddress}`);
         }
+        doc.moveDown(0.5);
       }
 
+      // Add separator between applications
       if (index < applicationsWithChambers.length - 1) {
+        drawLineSeparator(doc);
         doc.moveDown();
-        doc
-          .moveTo(doc.x, doc.y)
-          .lineTo(doc.page.width - doc.page.margins.right, doc.y)
-          .stroke();
-        doc.moveDown().moveDown();
       }
     });
 
+    // Finalize PDF
     doc.end();
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error("PDF generation error:", err);
+    res.status(500).json({
+      error: "Failed to generate PDF",
+      details: err.message,
+    });
   }
 };
+
+// Helper functions
+function formatDateForDisplay(dateString) {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function formatCurrency(amount) {
+  if (!amount) return "Tk 0";
+  return `Tk ${parseFloat(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function addDetailIfExists(doc, label, value) {
+  if (value && value.toString().trim() !== "") {
+    doc.text(`${label}: ${value}`);
+  }
+}
+
+function drawLineSeparator(doc) {
+  doc
+    .moveTo(doc.x, doc.y)
+    .lineTo(doc.page.width - doc.page.margins.right, doc.y)
+    .strokeColor("#cccccc")
+    .lineWidth(1)
+    .stroke();
+  doc.moveDown(0.5);
+}

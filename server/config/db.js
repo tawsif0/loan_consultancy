@@ -2,9 +2,9 @@ const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
   host: "localhost", // Use 'localhost' instead of IP
-  user: "arbeitte_loan",
+  user: "loancons_data",
   password: "Arbeit123@@",
-  database: "arbeitte_loan",
+  database: "loancons_data",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
