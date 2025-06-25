@@ -32,7 +32,7 @@ const AdminPanel = () => {
         }
 
         const response = await axios.get(
-          "https://loanapi.arbeitonline.top/api/applications",
+          "https://api.loanconsultancybd.com/api/applications",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -448,7 +448,7 @@ const AdminPanel = () => {
         params.append("filterType", filterType);
 
       const response = await fetch(
-        `https://loanapi.arbeitonline.top/api/applications/download?${params.toString()}`,
+        `https://api.loanconsultancybd.com/api/applications/download?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -19,7 +19,7 @@ const AdminLogin = () => {
 
     try {
       const response = await fetch(
-        "https://loanapi.arbeitonline.top/api/auth/login",
+        "https://api.loanconsultancybd.com/api/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

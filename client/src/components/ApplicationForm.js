@@ -349,7 +349,7 @@ const ApplicationForm = () => {
 
       // 3. Send request
       const response = await fetch(
-        "https://loanapi.arbeitonline.top/api/applications",
+        "https://api.loanconsultancybd.com/api/applications",
         {
           method: "POST",
           headers: {
